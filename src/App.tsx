@@ -216,7 +216,6 @@ export default function App() {
           {currentStep === 'welcome' && (
             <WelcomeScreen
               onStart={handleStart}
-              onOpenAudit={() => setIsAuditModalOpen(true)}
               hasSavedProgress={answeredCount > 0}
               savedAnswersCount={answeredCount}
               onResume={handleResume}

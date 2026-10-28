@@ -219,7 +219,7 @@ export const QUESTIONS: Question[] = [
     id: 9,
     dimensionKey: 'practico_experiencial',
     dimensionName: 'Práctica y experiencial',
-    text: 'Aprendo mucho más rápido y con mayor retención cuando puedo «aprender haciendo» o manipular herramientas reales desde el primer momento.',
+    text: 'Aprendo mucho más rápido y con mayor retención cuando puedo aprender haciendo o manipular herramientas reales desde el primer momento.',
     subtext: 'La práctica directa y la acción física te permiten consolidar lo que estás estudiando.'
   },
   {

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { DimensionResult, DimensionKey } from '../types';
 import { DIMENSIONS } from '../data/questions';
-import { Sparkles, ArrowRight, Lightbulb, Compass, ChevronRight } from 'lucide-react';
+import { Sparkles, Lightbulb, Compass, X } from 'lucide-react';
 
 interface RadarChartProps {
   results: DimensionResult[];
@@ -15,6 +16,7 @@ export const RadarChart: React.FC<RadarChartProps> = ({
   onSelectKey
 }) => {
   const [hoveredKey, setHoveredKey] = useState<DimensionKey | null>(null);
+  const [tappedKey, setTappedKey] = useState<DimensionKey | null>(null);
 
   // Map results in standard 6-axis order
   const order: DimensionKey[] = [
@@ -90,6 +92,46 @@ export const RadarChart: React.FC<RadarChartProps> = ({
     .map((pt) => `${pt.x.toFixed(1)},${pt.y.toFixed(1)}`)
     .join(' ');
 
+  // Active tooltip state and coordinates
+  const activeTooltipKey = hoveredKey || tappedKey;
+  const tooltipResult = orderedResults.find((r) => r.key === activeTooltipKey);
+  const tooltipIndex = orderedResults.findIndex((r) => r.key === activeTooltipKey);
+  const tooltipPt = tooltipIndex >= 0 ? dataPoints[tooltipIndex] : null;
+  const tooltipDim = activeTooltipKey ? DIMENSIONS[activeTooltipKey] : null;
+
+  const isTooltipBelow = tooltipPt ? tooltipPt.y < 140 : false;
+  const isTooltipShiftLeft = tooltipPt ? tooltipPt.x > center + 30 : false;
+  const isTooltipShiftRight = tooltipPt ? tooltipPt.x < center - 30 : false;
+
+  const getTooltipStyle = () => {
+    if (!tooltipPt) return {};
+    const leftPct = (tooltipPt.x / size) * 100;
+    const topPct = (tooltipPt.y / size) * 100;
+
+    let translateX = '-50%';
+    if (isTooltipShiftLeft) translateX = '-85%';
+    else if (isTooltipShiftRight) translateX = '-15%';
+
+    const translateY = isTooltipBelow ? '18px' : '-112%';
+
+    return {
+      left: `${leftPct}%`,
+      top: `${topPct}%`,
+      transform: `translate(${translateX}, ${translateY})`
+    };
+  };
+
+  const getArrowClasses = () => {
+    let horizontalClass = 'left-1/2 -translate-x-1/2';
+    if (isTooltipShiftLeft) horizontalClass = 'left-[85%] -translate-x-1/2';
+    else if (isTooltipShiftRight) horizontalClass = 'left-[15%] -translate-x-1/2';
+
+    if (isTooltipBelow) {
+      return `absolute -top-1.5 ${horizontalClass} w-3 h-3 bg-[#121018] border-t border-l border-[#FF2D95]/60 rotate-45`;
+    }
+    return `absolute -bottom-1.5 ${horizontalClass} w-3 h-3 bg-[#121018] border-b border-r border-[#FF2D95]/60 rotate-45`;
+  };
+
   return (
     <div className="w-full bg-[#121018] border border-[#2D2838] rounded-3xl p-5 sm:p-8 shadow-2xl relative overflow-hidden transition-all">
       {/* Background radial glow */}
@@ -105,7 +147,7 @@ export const RadarChart: React.FC<RadarChartProps> = ({
             </h3>
           </div>
           <p className="text-xs sm:text-sm text-[#B8ADBF]">
-            Visualiza el equilibrio de tus preferencias. Toca cualquier eje o etiqueta para explorar la habilidad.
+            Visualiza el equilibrio de tus preferencias. Toca o pasa el cursor por cualquier eje para ver la descripción emergente y su valor exacto.
           </p>
         </div>
 
@@ -121,7 +163,10 @@ export const RadarChart: React.FC<RadarChartProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center relative z-10">
         {/* Radar SVG Container */}
         <div className="lg:col-span-7 flex flex-col items-center justify-center">
-          <div className="w-full max-w-[420px] aspect-square relative select-none">
+          <div
+            className="w-full max-w-[420px] aspect-square relative select-none"
+            onClick={() => setTappedKey(null)}
+          >
             <svg
               viewBox={`0 0 ${size} ${size}`}
               className="w-full h-full overflow-visible drop-shadow-[0_0_20px_rgba(255,45,149,0.15)]"
@@ -189,21 +234,34 @@ export const RadarChart: React.FC<RadarChartProps> = ({
               {orderedResults.map((item, i) => {
                 const pt = dataPoints[i];
                 const isSelected = activeKey === item.key;
+                const isTooltipActive = activeTooltipKey === item.key;
 
                 return (
                   <g
                     key={`point-${item.key}`}
                     className="cursor-pointer"
-                    onClick={() => onSelectKey(item.key)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setTappedKey((prev) => (prev === item.key ? null : item.key));
+                      onSelectKey(item.key);
+                    }}
                     onMouseEnter={() => setHoveredKey(item.key)}
                     onMouseLeave={() => setHoveredKey(null)}
                   >
-                    {/* Pulsing ring on selection */}
-                    {isSelected && (
+                    {/* Expanded invisible hit target for effortless tapping and hovering */}
+                    <circle
+                      cx={pt.x}
+                      cy={pt.y}
+                      r="24"
+                      fill="transparent"
+                    />
+
+                    {/* Pulsing ring on selection or active tooltip */}
+                    {(isSelected || isTooltipActive) && (
                       <circle
                         cx={pt.x}
                         cy={pt.y}
-                        r="11"
+                        r="12"
                         fill="none"
                         stroke="#FF69C8"
                         strokeWidth="2"
@@ -214,12 +272,12 @@ export const RadarChart: React.FC<RadarChartProps> = ({
                     <circle
                       cx={pt.x}
                       cy={pt.y}
-                      r={isSelected ? '6.5' : '4.5'}
-                      fill={isSelected ? '#FF69C8' : '#FF2D95'}
+                      r={isSelected || isTooltipActive ? '7' : '4.5'}
+                      fill={isSelected || isTooltipActive ? '#FF69C8' : '#FF2D95'}
                       stroke="#FFFFFF"
-                      strokeWidth={isSelected ? '2' : '1.5'}
+                      strokeWidth={isSelected || isTooltipActive ? '2.5' : '1.5'}
                       className="transition-all duration-200"
-                      filter={isSelected ? 'url(#neonGlowFilter)' : undefined}
+                      filter={isSelected || isTooltipActive ? 'url(#neonGlowFilter)' : undefined}
                     />
 
                     {/* Numeric Score Tag */}
@@ -227,8 +285,8 @@ export const RadarChart: React.FC<RadarChartProps> = ({
                       x={pt.x}
                       y={pt.y - 12}
                       textAnchor="middle"
-                      fill={isSelected ? '#FF69C8' : '#FFF8FC'}
-                      fontSize={isSelected ? '12' : '10'}
+                      fill={isSelected || isTooltipActive ? '#FF69C8' : '#FFF8FC'}
+                      fontSize={isSelected || isTooltipActive ? '12' : '10'}
                       fontWeight="bold"
                       className="font-mono transition-all pointer-events-none drop-shadow-md"
                     >
@@ -242,6 +300,7 @@ export const RadarChart: React.FC<RadarChartProps> = ({
               {orderedResults.map((item, i) => {
                 const labelPos = getLabelCoordinates(i);
                 const isSelected = activeKey === item.key;
+                const isTooltipActive = activeTooltipKey === item.key;
 
                 let anchor: 'middle' | 'start' | 'end' = 'middle';
                 if (Math.abs(labelPos.x - center) > 20) {
@@ -257,17 +316,30 @@ export const RadarChart: React.FC<RadarChartProps> = ({
                   <g
                     key={`label-${item.key}`}
                     className="cursor-pointer group"
-                    onClick={() => onSelectKey(item.key)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setTappedKey((prev) => (prev === item.key ? null : item.key));
+                      onSelectKey(item.key);
+                    }}
                     onMouseEnter={() => setHoveredKey(item.key)}
                     onMouseLeave={() => setHoveredKey(null)}
                   >
+                    {/* Invisible wider hit rectangle for easy touch */}
+                    <rect
+                      x={anchor === 'middle' ? labelPos.x - 45 : anchor === 'start' ? labelPos.x - 5 : labelPos.x - 85}
+                      y={labelPos.y - 18}
+                      width="90"
+                      height="36"
+                      fill="transparent"
+                    />
+
                     <text
                       x={labelPos.x}
                       y={line2 ? labelPos.y - 6 : labelPos.y}
                       textAnchor={anchor}
-                      fill={isSelected ? '#FF2D95' : '#B8ADBF'}
+                      fill={isSelected || isTooltipActive ? '#FF2D95' : '#B8ADBF'}
                       fontSize="11.5"
-                      fontWeight={isSelected ? '700' : '600'}
+                      fontWeight={isSelected || isTooltipActive ? '700' : '600'}
                       className="transition-colors duration-200 group-hover:fill-[#FF69C8]"
                     >
                       {line1}
@@ -277,9 +349,9 @@ export const RadarChart: React.FC<RadarChartProps> = ({
                         x={labelPos.x}
                         y={labelPos.y + 8}
                         textAnchor={anchor}
-                        fill={isSelected ? '#FF69C8' : '#8E8296'}
+                        fill={isSelected || isTooltipActive ? '#FF69C8' : '#8E8296'}
                         fontSize="10.5"
-                        fontWeight={isSelected ? '600' : '500'}
+                        fontWeight={isSelected || isTooltipActive ? '600' : '500'}
                         className="transition-colors duration-200 group-hover:fill-[#FF69C8]"
                       >
                         {line2}
@@ -289,6 +361,87 @@ export const RadarChart: React.FC<RadarChartProps> = ({
                 );
               })}
             </svg>
+
+            {/* Interactive Floating Tooltip on Hover / Tap */}
+            <AnimatePresence>
+              {activeTooltipKey && tooltipResult && tooltipPt && tooltipDim && (
+                <motion.div
+                  key={`tooltip-${activeTooltipKey}`}
+                  initial={{ opacity: 0, scale: 0.92, y: isTooltipBelow ? -6 : 6 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.94, transition: { duration: 0.15 } }}
+                  transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                  style={getTooltipStyle()}
+                  className="absolute z-30 w-[260px] sm:w-[280px] p-4 rounded-2xl bg-[#121018]/95 backdrop-blur-md border border-[#FF2D95]/60 shadow-[0_0_25px_rgba(255,45,149,0.35)] pointer-events-auto text-left"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Tooltip Directional Arrow */}
+                  <div className={getArrowClasses()} />
+
+                  {/* Header: Skill Name, Accent Dot, Score, Close Button */}
+                  <div className="flex items-start justify-between gap-2 mb-2 pb-2 border-b border-[#282234] relative z-10">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm"
+                          style={{ backgroundColor: tooltipDim.theme.barColor }}
+                        />
+                        <h5 className="text-xs font-bold text-[#FFF8FC] font-['Space_Grotesk'] leading-tight truncate">
+                          {tooltipResult.friendlyName}
+                        </h5>
+                      </div>
+                      <span
+                        className="text-[9px] font-bold px-2 py-0.5 rounded-full inline-block border"
+                        style={{
+                          backgroundColor: tooltipDim.theme.badgeBg,
+                          color: tooltipDim.theme.badgeText,
+                          borderColor: tooltipDim.theme.border
+                        }}
+                      >
+                        {tooltipResult.intensityLabel}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <div className="text-right">
+                        <span className="text-sm font-extrabold text-[#FF2D95] font-mono leading-none block">
+                          {tooltipResult.mean.toFixed(2)}
+                        </span>
+                        <span className="text-[9px] text-[#B8ADBF] leading-none block mt-0.5">/ 5.00</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setTappedKey(null);
+                          setHoveredKey(null);
+                        }}
+                        className="w-5 h-5 rounded-md bg-[#1D1928] hover:bg-[#282236] text-[#B8ADBF] hover:text-white flex items-center justify-center text-xs transition-colors cursor-pointer"
+                        title="Cerrar tooltip"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Description / Summary */}
+                  <p className="text-[11px] text-[#FFF8FC] leading-relaxed mb-2.5 relative z-10 font-normal">
+                    {tooltipDim.summary}
+                  </p>
+
+                  {/* Practical Focus Box */}
+                  <div className="p-2.5 rounded-xl bg-[#181522] border border-[#282234] text-[10px] text-[#B8ADBF] leading-snug relative z-10">
+                    <strong className="text-[#36CFFF] block mb-0.5 font-semibold">Enfoque de aprendizaje:</strong>
+                    {tooltipDim.tagline}
+                  </div>
+
+                  {/* Micro Hint */}
+                  <div className="mt-2 text-[9px] text-[#8E8296] text-center relative z-10">
+                    Toca o pasa el cursor por otro punto para comparar
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 

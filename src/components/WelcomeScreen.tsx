@@ -15,7 +15,6 @@ import { DimensionKey } from '../types';
 
 interface WelcomeScreenProps {
   onStart: () => void;
-  onOpenAudit: () => void;
   hasSavedProgress: boolean;
   savedAnswersCount: number;
   onResume: () => void;
@@ -23,7 +22,6 @@ interface WelcomeScreenProps {
 
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   onStart,
-  onOpenAudit,
   hasSavedProgress,
   savedAnswersCount,
   onResume
@@ -53,10 +51,10 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           </span>
         </h1>
 
-        {/* Updated Main Message: EXACT PHRASING */}
+        {/* Main Message: EXACT PHRASING WITHOUT QUOTES */}
         <p className="text-base sm:text-xl text-[#B8ADBF] leading-relaxed font-normal max-w-2xl mx-auto">
-          «Identifica tus preferencias de aprendizaje, aprende estrategias prácticas y aprovecha al máximo tu potencial.{' '}
-          <span className="text-[#FFF8FC] font-semibold block sm:inline">Totalmente personalizadas.</span>»
+          Identifica tus preferencias de aprendizaje, aprende estrategias prácticas y aprovecha al máximo tu potencial.{' '}
+          <span className="text-[#FFF8FC] font-semibold block sm:inline">Totalmente personalizadas.</span>
         </p>
       </div>
 
@@ -177,24 +175,11 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       </div>
 
       {/* Discrete Disclaimer */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-[#121018] border border-[#2D2838] text-xs text-[#B8ADBF] flex items-start gap-3.5 mb-8 shadow-md relative z-10">
+      <div className="p-4 sm:p-5 rounded-2xl bg-[#121018] border border-[#2D2838] text-xs text-[#B8ADBF] flex items-start gap-3.5 shadow-md relative z-10">
         <HeartHandshake className="w-5 h-5 text-[#FF2D95] shrink-0 mt-0.5" />
         <p className="leading-relaxed">
-          «Este resultado es una guía para explorar tus preferencias de aprendizaje, no una etiqueta definitiva. Puedes aprender de muchas maneras y descubrir nuevas estrategias con la práctica».
+          Este resultado es una guía para explorar tus preferencias de aprendizaje, no una etiqueta definitiva. Puedes aprender de muchas maneras y descubrir nuevas estrategias con la práctica.
         </p>
-      </div>
-
-      {/* Test / Audit Shortcut */}
-      <div className="p-3.5 rounded-2xl border border-dashed border-[#2D2838] bg-[#0E0C14] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs relative z-10">
-        <span className="text-[#B8ADBF] text-center sm:text-left">
-          <strong>Acceso de prueba:</strong> Puedes cargar respuestas de ejemplo para ver la gráfica radial y las recomendaciones de inmediato.
-        </span>
-        <button
-          onClick={onOpenAudit}
-          className="px-3.5 py-1.5 rounded-xl bg-[#1A1724] border border-[#2D2838] hover:border-[#FF2D95] text-[#FFF8FC] font-semibold transition-all shrink-0 cursor-pointer"
-        >
-          Cargar ejemplos
-        </button>
       </div>
     </div>
   );

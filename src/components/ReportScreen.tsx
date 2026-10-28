@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, type Variants } from 'framer-motion';
 import {
   Sparkles,
   RotateCcw,
@@ -27,6 +28,41 @@ import {
   generateFodaAnalysis
 } from '../utils/calculator';
 import { RadarChart } from './RadarChart';
+
+// Framer Motion entrance animation variants (fade-in & slide-up)
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.04
+    }
+  }
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 22 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.45,
+      ease: [0.22, 1, 0.36, 1]
+    }
+  }
+};
+
+const cardStaggerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.07,
+      delayChildren: 0.02
+    }
+  }
+};
 
 interface ReportScreenProps {
   results: DimensionResult[];
@@ -168,12 +204,17 @@ Aviso: Este resultado es una guía para explorar tus preferencias de aprendizaje
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12 text-[#FFF8FC] relative">
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className="max-w-4xl mx-auto px-4 py-8 sm:py-12 text-[#FFF8FC] relative"
+    >
       {/* Background Neon Lights and Glows */}
       <div className="absolute top-10 right-1/4 w-[420px] h-[320px] bg-gradient-to-br from-[#FF2D95]/15 to-[#8B5CF6]/10 rounded-full blur-[110px] pointer-events-none" />
 
       {/* 1. Header & Title: Sin comillas como solicitado */}
-      <div className="mb-8 relative z-10">
+      <motion.div variants={itemVariants} className="mb-8 relative z-10">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#121018] border border-[#FF2D95]/40 text-[#FF69C8] text-xs font-bold uppercase tracking-wide shadow-[0_0_15px_rgba(255,45,149,0.3)]">
             <Sparkles className="w-3.5 h-3.5 text-[#FF2D95]" />
@@ -216,10 +257,13 @@ Aviso: Este resultado es una guía para explorar tus preferencias de aprendizaje
         <p className="text-sm sm:text-base text-[#B8ADBF] leading-relaxed max-w-3xl">
           Tus respuestas nos dan pistas sobre las formas de aprender que mejor te funcionan. A continuación encontrarás tu perfil, la gráfica radial y un análisis FODA con recomendaciones estratégicas y entregables clave.
         </p>
-      </div>
+      </motion.div>
 
       {/* 2. Tarjeta del Perfil Personal */}
-      <div className="bg-[#121018] border border-[#2D2838] hover:border-[#FF2D95]/50 rounded-3xl p-6 sm:p-9 shadow-2xl mb-10 relative overflow-hidden transition-all z-10">
+      <motion.div
+        variants={itemVariants}
+        className="bg-[#121018] border border-[#2D2838] hover:border-[#FF2D95]/50 rounded-3xl p-6 sm:p-9 shadow-2xl mb-10 relative overflow-hidden transition-all z-10"
+      >
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
           <div>
             <span className="text-xs font-bold text-[#FF69C8] uppercase tracking-wider block mb-1">
@@ -260,49 +304,49 @@ Aviso: Este resultado es una guía para explorar tus preferencias de aprendizaje
         </p>
 
         {/* 3 Preguntas Clave */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-6 border-t border-[#252030]">
-          <div className="p-4 rounded-2xl bg-[#181522] border border-[#2A2436]">
+        <motion.div variants={cardStaggerVariants} className="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-6 border-t border-[#252030]">
+          <motion.div variants={itemVariants} className="p-4 rounded-2xl bg-[#181522] border border-[#2A2436]">
             <span className="text-xs font-bold text-[#FF69C8] block mb-1">
               1. ¿Qué te resulta más fácil?
             </span>
             <p className="text-xs text-[#B8ADBF] leading-relaxed">
               Apoyarte en {top1.friendlyName.toLowerCase()} ({top1.mean.toFixed(2)}/5) y {top2.friendlyName.toLowerCase()} ({top2.mean.toFixed(2)}/5).
             </p>
-          </div>
+          </motion.div>
 
-          <div className="p-4 rounded-2xl bg-[#181522] border border-[#2A2436]">
+          <motion.div variants={itemVariants} className="p-4 rounded-2xl bg-[#181522] border border-[#2A2436]">
             <span className="text-xs font-bold text-[#36CFFF] block mb-1">
               2. ¿Cómo aprovecharlo hoy?
             </span>
             <p className="text-xs text-[#B8ADBF] leading-relaxed">
               Combinando ambas vías en tus sesiones de estudio y proyectos personales.
             </p>
-          </div>
+          </motion.div>
 
-          <div className="p-4 rounded-2xl bg-[#181522] border border-[#2A2436]">
+          <motion.div variants={itemVariants} className="p-4 rounded-2xl bg-[#181522] border border-[#2A2436]">
             <span className="text-xs font-bold text-[#FFE45E] block mb-1">
               3. ¿Qué puedes explorar?
             </span>
             <p className="text-xs text-[#B8ADBF] leading-relaxed">
               Probar pequeñas dosis de {lowest1.friendlyName.toLowerCase()} sin presión.
             </p>
-          </div>
-        </div>
-      </div>
+          </motion.div>
+        </motion.div>
+      </motion.div>
 
       {/* 3. GRÁFICA RADIAL INTERACTIVA DE LAS SEIS HABILIDADES */}
-      <section className="mb-12 relative z-10">
+      <motion.section variants={itemVariants} className="mb-12 relative z-10">
         <RadarChart
           results={results}
           selectedKey={selectedSkillKey}
           onSelectKey={(key) => setSelectedSkillKey(key)}
         />
-      </section>
+      </motion.section>
 
       {/* 4. SECCIÓN UNIFICADA: ANÁLISIS FODA Y RECOMENDACIONES ESTRATÉGICAS */}
-      <section className="mb-12 relative z-10">
+      <motion.section variants={itemVariants} className="mb-12 relative z-10">
         {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 p-6 rounded-3xl bg-[#121018] border border-[#2D2838] shadow-xl">
+        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 p-6 rounded-3xl bg-[#121018] border border-[#2D2838] shadow-xl">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#FF2D95] via-[#8B5CF6] to-[#36CFFF] text-white flex items-center justify-center font-extrabold shadow-[0_0_20px_rgba(255,45,149,0.4)] shrink-0">
               <Zap className="w-6 h-6" />
@@ -323,12 +367,15 @@ Aviso: Este resultado es una guía para explorar tus preferencias de aprendizaje
               Matriz FODA Integral
             </span>
           </div>
-        </div>
+        </motion.div>
 
         {/* 4 Quadrants Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <motion.div variants={cardStaggerVariants} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           {/* F: Fortalezas */}
-          <div className="p-6 rounded-3xl bg-[#121018] border border-[#FF2D95]/40 hover:border-[#FF2D95] shadow-[0_0_20px_rgba(255,45,149,0.12)] transition-all flex flex-col justify-between">
+          <motion.div
+            variants={itemVariants}
+            className="p-6 rounded-3xl bg-[#121018] border border-[#FF2D95]/40 hover:border-[#FF2D95] shadow-[0_0_20px_rgba(255,45,149,0.12)] transition-all flex flex-col justify-between"
+          >
             <div>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -362,10 +409,13 @@ Aviso: Este resultado es una guía para explorar tus preferencias de aprendizaje
                 ))}
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* O: Oportunidades */}
-          <div className="p-6 rounded-3xl bg-[#121018] border border-[#36CFFF]/40 hover:border-[#36CFFF] shadow-[0_0_20px_rgba(54,207,255,0.12)] transition-all flex flex-col justify-between">
+          <motion.div
+            variants={itemVariants}
+            className="p-6 rounded-3xl bg-[#121018] border border-[#36CFFF]/40 hover:border-[#36CFFF] shadow-[0_0_20px_rgba(54,207,255,0.12)] transition-all flex flex-col justify-between"
+          >
             <div>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -399,10 +449,13 @@ Aviso: Este resultado es una guía para explorar tus preferencias de aprendizaje
                 ))}
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* D: Debilidades / Puntos a cuidar */}
-          <div className="p-6 rounded-3xl bg-[#121018] border border-[#FFE45E]/40 hover:border-[#FFE45E] shadow-[0_0_20px_rgba(255,228,94,0.12)] transition-all flex flex-col justify-between">
+          <motion.div
+            variants={itemVariants}
+            className="p-6 rounded-3xl bg-[#121018] border border-[#FFE45E]/40 hover:border-[#FFE45E] shadow-[0_0_20px_rgba(255,228,94,0.12)] transition-all flex flex-col justify-between"
+          >
             <div>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -436,10 +489,13 @@ Aviso: Este resultado es una guía para explorar tus preferencias de aprendizaje
                 ))}
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* A: Amenazas y Fricciones */}
-          <div className="p-6 rounded-3xl bg-[#121018] border border-[#8B5CF6]/40 hover:border-[#8B5CF6] shadow-[0_0_20px_rgba(139,92,246,0.12)] transition-all flex flex-col justify-between">
+          <motion.div
+            variants={itemVariants}
+            className="p-6 rounded-3xl bg-[#121018] border border-[#8B5CF6]/40 hover:border-[#8B5CF6] shadow-[0_0_20px_rgba(139,92,246,0.12)] transition-all flex flex-col justify-between"
+          >
             <div>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -473,11 +529,11 @@ Aviso: Este resultado es una guía para explorar tus preferencias de aprendizaje
                 ))}
               </div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* FODA-Derived Strategic Recommendations Header */}
-        <div className="mb-5">
+        <motion.div variants={itemVariants} className="mb-5">
           <div className="flex items-center gap-2 mb-1">
             <TrendingUp className="w-5 h-5 text-[#FF2D95]" />
             <h4 className="text-lg sm:text-xl font-bold text-[#FFF8FC] font-['Space_Grotesk']">
@@ -487,13 +543,14 @@ Aviso: Este resultado es una guía para explorar tus preferencias de aprendizaje
           <p className="text-xs text-[#B8ADBF]">
             Acciones cruzadas para multiplicar tus fortalezas, aprovechar oportunidades, neutralizar fricciones y blindar tu proceso de aprendizaje.
           </p>
-        </div>
+        </motion.div>
 
         {/* 4 Recommendations Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <motion.div variants={cardStaggerVariants} className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {foda.recommendations.map((rec) => (
-            <div
+            <motion.div
               key={rec.id}
+              variants={itemVariants}
               className="p-6 rounded-3xl bg-[#121018] border border-[#2D2838] hover:border-[#FF2D95]/60 shadow-xl transition-all flex flex-col justify-between group"
             >
               <div>
@@ -541,14 +598,14 @@ Aviso: Este resultado es una guía para explorar tus preferencias de aprendizaje
                   {rec.kpiDeliverable}
                 </p>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
-      </section>
+        </motion.div>
+      </motion.section>
 
       {/* 5. PLAN DE ACCIÓN: TU RETO DE 7 DÍAS CON ENTREGABLES (KPI) */}
-      <section className="mb-12 relative z-10">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-7 rounded-3xl bg-[#121018] border border-[#2D2838] mb-6 shadow-xl">
+      <motion.section variants={itemVariants} className="mb-12 relative z-10">
+        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-7 rounded-3xl bg-[#121018] border border-[#2D2838] mb-6 shadow-xl">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <div className="w-8 h-8 rounded-xl bg-[#FF2D95] text-white flex items-center justify-center shadow-[0_0_12px_#FF2D95]">
@@ -583,21 +640,22 @@ Aviso: Este resultado es una guía para explorar tus preferencias de aprendizaje
               Reiniciar
             </button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Progress Bar */}
-        <div className="w-full h-2.5 bg-[#121018] border border-[#231E2E] rounded-full overflow-hidden mb-6">
+        <motion.div variants={itemVariants} className="w-full h-2.5 bg-[#121018] border border-[#231E2E] rounded-full overflow-hidden mb-6">
           <div
             className="h-full bg-gradient-to-r from-[#FF2D95] via-[#FF69C8] to-[#8B5CF6] transition-all duration-300 rounded-full shadow-[0_0_12px_#FF2D95]"
             style={{ width: `${planProgressPercent}%` }}
           />
-        </div>
+        </motion.div>
 
         {/* 7 Daily Activities with explicit KPI Deliverables */}
-        <div className="space-y-4 mb-6">
+        <motion.div variants={cardStaggerVariants} className="space-y-4 mb-6">
           {dayPlan.map((item) => (
-            <div
+            <motion.div
               key={item.day}
+              variants={itemVariants}
               className={`p-4 sm:p-5 rounded-3xl border transition-all ${
                 item.completed
                   ? 'bg-[#101E17] border-[#10B981]/50 shadow-[0_0_15px_rgba(16,185,129,0.2)]'
@@ -673,15 +731,15 @@ Aviso: Este resultado es una guía para explorar tus preferencias de aprendizaje
 
                 <div className="p-3 rounded-2xl bg-[#181522] border border-[#282334] text-[#FFF8FC]">
                   <span className="text-[#FF69C8] font-bold block mb-0.5">Pregunta de reflexión:</span>
-                  <p className="italic text-[#B8ADBF]">«{item.reflectionQuestion}»</p>
+                  <p className="italic text-[#B8ADBF]">{item.reflectionQuestion}</p>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         {/* Final Reflection Box */}
-        <div className="p-6 rounded-3xl bg-[#121018] border border-[#2D2838] shadow-lg">
+        <motion.div variants={itemVariants} className="p-6 rounded-3xl bg-[#121018] border border-[#2D2838] shadow-lg">
           <div className="flex items-center gap-2 mb-3">
             <HelpCircle className="w-4 h-4 text-[#FF2D95]" />
             <h4 className="text-sm font-bold text-[#FFF8FC] font-['Space_Grotesk']">
@@ -693,19 +751,19 @@ Aviso: Este resultado es una guía para explorar tus preferencias de aprendizaje
             <li><strong>¿Qué pude recordar sin consultar mis apuntes?</strong> Comprueba el impacto de la evocación activa del Día 2.</li>
             <li><strong>¿Qué estrategia quiero seguir utilizando?</strong> Incorpora de forma permanente una o dos técnicas a tu rutina cotidiana.</li>
           </ul>
-        </div>
-      </section>
+        </motion.div>
+      </motion.section>
 
       {/* Discrete Disclaimer */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-[#121018] border border-[#2D2838] text-xs text-[#B8ADBF] flex items-start gap-3.5 mb-8 shadow-md relative z-10">
+      <motion.div variants={itemVariants} className="p-4 sm:p-5 rounded-2xl bg-[#121018] border border-[#2D2838] text-xs text-[#B8ADBF] flex items-start gap-3.5 mb-8 shadow-md relative z-10">
         <HeartHandshake className="w-5 h-5 text-[#FF2D95] shrink-0 mt-0.5" />
         <p className="leading-relaxed">
-          «Este resultado es una guía para explorar tus preferencias de aprendizaje, no una etiqueta definitiva. Puedes aprender de muchas maneras y descubrir nuevas estrategias con la práctica».
+          Este resultado es una guía para explorar tus preferencias de aprendizaje, no una etiqueta definitiva. Puedes aprender de muchas maneras y descubrir nuevas estrategias con la práctica.
         </p>
-      </div>
+      </motion.div>
 
       {/* Reset Section */}
-      <div className="pt-6 border-t border-[#252030] flex flex-col sm:flex-row items-center justify-between gap-4 relative z-10">
+      <motion.div variants={itemVariants} className="pt-6 border-t border-[#252030] flex flex-col sm:flex-row items-center justify-between gap-4 relative z-10">
         <p className="text-xs text-[#B8ADBF] text-center sm:text-left">
           ¿Quieres repetir el cuestionario para evaluar otra materia o contexto de estudio?
         </p>
@@ -717,7 +775,7 @@ Aviso: Este resultado es una guía para explorar tus preferencias de aprendizaje
           <RotateCcw className="w-4 h-4 text-[#FF2D95]" />
           <span>Repetir el cuestionario</span>
         </button>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };

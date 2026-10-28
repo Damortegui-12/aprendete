@@ -11,7 +11,7 @@ import fs from 'fs';
 import path from 'path';
 
 console.log('=====================================================');
-console.log('AUDITORÍA TÉCNICA — APRÉNDETE: FODA & KPIS');
+console.log('AUDITORÍA TÉCNICA — APRÉNDETE: MARCA Y CERO COMILLAS');
 console.log('=====================================================\n');
 
 let failedTests = 0;
@@ -96,13 +96,13 @@ assert(metaRes.intensityLabel === 'Te resulta muy cómoda', 'Etiqueta media-alta
 assert(verbalRes.intensityLabel === 'La utilizas según el momento', 'Etiqueta media en lenguaje cotidiano');
 assert(socialRes.intensityLabel === 'Una forma que puedes explorar', 'Etiqueta de exploración no deficitaria');
 
-// 4. Verificación de la generación del perfil personal (título y párrafo memorable)
+// 4. Verificación de la generación del perfil personal
 console.log('\n--- 4. VERIFICACIÓN DEL PERFIL PERSONAL Y TÍTULO DINÁMICO ---');
 const isTie = true; // Visual and Practical tie at 5.00
 const profile = generatePersonalProfile(results[0], results[1], isTie);
 assert(
   profile.title === 'Aprendes mejor cuando lo ves y lo haces',
-  `Genera el título amigable y memorable correspondiente («${profile.title}»)`
+  `Genera el título amigable y memorable correspondiente (${profile.title})`
 );
 assert(
   profile.paragraph.length > 50 && profile.paragraph.includes('combinar'),
@@ -149,29 +149,29 @@ assert(
   'Cada uno de los 7 días incluye un resultado esperado explícito / Entregable que funciona como KPI'
 );
 
-// 7. Verificación del titular SIN comillas en ReportScreen
-console.log('\n--- 7. VERIFICACIÓN DEL TITULAR SIN COMILLAS ---');
-const reportScreenContent = fs.readFileSync(path.resolve(process.cwd(), 'src/components/ReportScreen.tsx'), 'utf-8');
-assert(
-  reportScreenContent.includes('>Así es como te resulta más fácil aprender<') ||
-  reportScreenContent.includes('Así es como te resulta más fácil aprender\n'),
-  'El encabezado en ReportScreen no tiene comillas (« »)'
-);
-assert(
-  !reportScreenContent.includes('«Así es como te resulta más fácil aprender»'),
-  'Se han eliminado completamente las comillas del titular «Así es como te resulta más fácil aprender»'
-);
-
-// 8. Verificación de eliminación de "Black + Neon Pink Visual Experience" en el pie de página
-console.log('\n--- 8. VERIFICACIÓN DE ELIMINACIÓN EN PIE DE PÁGINA ---');
+// 7. Verificación de la identidad oficial de marca: Apréndete
+console.log('\n--- 7. VERIFICACIÓN DE IDENTIDAD OFICIAL: APRÉNDETE ---');
+const indexHtmlContent = fs.readFileSync(path.resolve(process.cwd(), 'index.html'), 'utf-8');
+const metadataContent = fs.readFileSync(path.resolve(process.cwd(), 'metadata.json'), 'utf-8');
+const headerContent = fs.readFileSync(path.resolve(process.cwd(), 'src/components/Header.tsx'), 'utf-8');
+const welcomeContent = fs.readFileSync(path.resolve(process.cwd(), 'src/components/WelcomeScreen.tsx'), 'utf-8');
 const appContent = fs.readFileSync(path.resolve(process.cwd(), 'src/App.tsx'), 'utf-8');
-assert(
-  !appContent.includes('Black + Neon Pink Visual Experience'),
-  '«Black + Neon Pink Visual Experience» ha sido eliminado del pie de página'
-);
 
-// 9. Verificación de honestidad científica y ausencia de jerga clínica o conceptos amorosos
-console.log('\n--- 9. AUDITORÍA DE LENGUAJE Y HONESTIDAD CIENTÍFICA ---');
+assert(indexHtmlContent.includes('Apréndete'), 'index.html utiliza Apréndete como título principal');
+assert(metadataContent.includes('"name": "Apréndete"'), 'metadata.json utiliza Apréndete como nombre oficial');
+assert(headerContent.includes('Apréndete'), 'Header.tsx muestra el logotipo y nombre de marca Apréndete');
+assert(welcomeContent.includes('Apréndete'), 'WelcomeScreen.tsx destaca la marca Apréndete');
+assert(appContent.includes('Apréndete'), 'App.tsx utiliza Apréndete en el pie de página');
+
+// 8. Cero uso de "Learning Profile" como nombre de la aplicación y eliminación de "Acceso de prueba"
+console.log('\n--- 8. AUSENCIA DE LEARNING PROFILE Y ELIMINACIÓN DE ACCESO DE PRUEBA ---');
+assert(!headerContent.includes('Learning Profile'), 'Header.tsx no contiene Learning Profile');
+assert(!welcomeContent.includes('Learning Profile'), 'WelcomeScreen.tsx no contiene Learning Profile');
+assert(!appContent.includes('Learning Profile'), 'App.tsx no contiene Learning Profile en el pie de página ni textos visibles');
+assert(!welcomeContent.includes('Acceso de prueba'), 'WelcomeScreen.tsx no contiene la sección Acceso de prueba');
+
+// 9. Cero comillas en toda la interfaz
+console.log('\n--- 9. VERIFICACIÓN DE CERO COMILLAS EN LA INTERFAZ ---');
 const srcDir = path.resolve(process.cwd(), 'src');
 const filesToCheck: string[] = [];
 
@@ -182,15 +182,39 @@ function getFilesRecursively(dir: string) {
     const stat = fs.statSync(fullPath);
     if (stat.isDirectory()) {
       getFilesRecursively(fullPath);
-    } else if (file.endsWith('.tsx') || file.endsWith('.ts') || file.endsWith('.html')) {
+    } else if (file.endsWith('.tsx') || file.endsWith('.ts')) {
       filesToCheck.push(fullPath);
     }
   });
 }
 getFilesRecursively(srcDir);
-filesToCheck.push(path.resolve(process.cwd(), 'index.html'));
-filesToCheck.push(path.resolve(process.cwd(), 'metadata.json'));
 
+let foundQuotes = 0;
+const quoteRegex = /[«»“”]/;
+
+filesToCheck.forEach((filePath) => {
+  const content = fs.readFileSync(filePath, 'utf-8');
+  const lines = content.split('\n');
+  lines.forEach((line, idx) => {
+    if (quoteRegex.test(line)) {
+      console.warn(`   ⚠️ Comilla detectada en ${path.basename(filePath)}:${idx + 1} -> ${line.trim()}`);
+      foundQuotes++;
+    }
+  });
+});
+
+assert(foundQuotes === 0, `Cero comillas («, », “, ”) en los archivos de la interfaz (encontradas: ${foundQuotes})`);
+
+// 10. Mensaje principal acordado exacto sin comillas
+console.log('\n--- 10. MENSAJE PRINCIPAL ACORDADO ---');
+const expectedMessageFragment = 'Identifica tus preferencias de aprendizaje, aprende estrategias prácticas y aprovecha al máximo tu potencial';
+assert(
+  welcomeContent.includes(expectedMessageFragment) && welcomeContent.includes('Totalmente personalizadas'),
+  'El mensaje principal acordado está presente sin comillas'
+);
+
+// 11. Honestidad científica y ausencia de jerga clínica
+console.log('\n--- 11. AUDITORÍA DE LENGUAJE Y HONESTIDAD CIENTÍFICA ---');
 const forbiddenTerms = [
   /estilos de amor/i,
   /vínculo afectivo/i,
@@ -219,12 +243,13 @@ filesToCheck.forEach((filePath) => {
 
 assert(foundForbiddenTerms === 0, 'Cero términos prohibidos, no deseados o pseudocientíficos');
 
-// 10. Verificación de la presencia del componente RadarChart
-console.log('\n--- 10. VERIFICACIÓN DE LA GRÁFICA RADIAL INTERACTIVA ---');
+console.log('\n--- 12. GRÁFICA RADIAL INTERACTIVA Y TOOLTIPS EMERGENTES ---');
 const radarChartFile = path.resolve(process.cwd(), 'src/components/RadarChart.tsx');
 assert(fs.existsSync(radarChartFile), 'Componente RadarChart.tsx existe y está disponible');
 const radarContent = fs.readFileSync(radarChartFile, 'utf-8');
 assert(radarContent.includes('radarNeonGradient') && radarContent.includes('polygon'), 'RadarChart implementa polígono radial de 6 ejes con gradiente de luces');
+assert(radarContent.includes('activeTooltipKey') && radarContent.includes('tappedKey') && radarContent.includes('hoveredKey'), 'RadarChart soporta interacción por tap y hover');
+assert(radarContent.includes('AnimatePresence') && radarContent.includes('tooltipResult.mean.toFixed(2)'), 'RadarChart muestra tooltip emergente con descripción y valor exacto sin salir de la vista');
 
 console.log('\n=====================================================');
 console.log(`RESUMEN DE PRUEBAS EJECUTADAS: ${passedTests} superadas, ${failedTests} fallidas.`);

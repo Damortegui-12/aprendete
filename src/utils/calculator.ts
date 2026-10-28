@@ -546,7 +546,7 @@ export function generate7DayPlan(
       objective: 'Elegir qué técnicas conservarás para tus próximos estudios o proyectos.',
       instructions: 'Revisa los experimentos de la semana y responde a las tres preguntas clave: ¿Qué actividad me ayudó más? ¿Qué pude recordar sin consultar apuntes? ¿Qué estrategia quiero seguir utilizando?',
       reflectionQuestion: '¿Cómo ha cambiado mi mirada sobre mi manera de aprender?',
-      kpiDeliverable: 'Entregable (KPI): «Manifiesto de Aprendizaje» de 1 página con tus 3 reglas de oro permanentes para futuros retos.',
+      kpiDeliverable: 'Entregable (KPI): Manifiesto de Aprendizaje de 1 página con tus 3 reglas de oro permanentes para futuros retos.',
       completed: false
     }
   ];
@@ -559,7 +559,7 @@ export const AUDIT_PRESETS: Record<
 > = {
   EXACT_TIE_VISUAL_PRACTICAL: {
     name: 'Empate: Visual y Práctico (5.00 y 5.00)',
-    description: 'Empate perfecto en el 1.er lugar para probar «Aprendes mejor cuando lo ves y lo haces».',
+    description: 'Empate perfecto en el 1.er lugar para probar: Aprendes mejor cuando lo ves y lo haces.',
     answers: {
       1: 5, 2: 5, 3: 5, 4: 5, // Visual = 5.00
       5: 3, 6: 3, 7: 3, 8: 3, // Verbal = 3.00
@@ -571,7 +571,7 @@ export const AUDIT_PRESETS: Record<
   },
   VERBAL_SOCIAL: {
     name: 'Perfil: Verbal y Social (5.00 y 4.75)',
-    description: 'Prueba de «Te ayuda hablarlo y compartir ideas».',
+    description: 'Prueba de: Te ayuda hablarlo y compartir ideas.',
     answers: {
       1: 2, 2: 3, 3: 2, 4: 3, // Visual = 2.50
       5: 5, 6: 5, 7: 5, 8: 5, // Verbal = 5.00
@@ -583,7 +583,7 @@ export const AUDIT_PRESETS: Record<
   },
   ANALYTICAL_STRUCTURED: {
     name: 'Perfil: Analítico y Metacognitivo (5.00 y 4.75)',
-    description: 'Prueba de «Te funciona organizar tus ideas y conectar conceptos».',
+    description: 'Prueba de: Te funciona organizar tus ideas y conectar conceptos.',
     answers: {
       1: 4, 2: 4, 3: 4, 4: 4, // Visual = 4.00
       5: 3, 6: 3, 7: 3, 8: 3, // Verbal = 3.00

@@ -128,7 +128,7 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({
 
         {/* Question Text */}
         <h2 className="text-xl sm:text-2xl font-bold text-[#FFF8FC] leading-snug mb-3 font-['Space_Grotesk']">
-          «{currentQuestion.text}»
+          {currentQuestion.text}
         </h2>
         <p className="text-sm text-[#B8ADBF] mb-7 leading-relaxed">
           {currentQuestion.subtext}
