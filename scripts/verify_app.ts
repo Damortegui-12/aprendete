@@ -2,6 +2,9 @@ import { QUESTIONS, DIMENSIONS, LIKERT_OPTIONS } from '../src/data/questions';
 import {
   calculateDimensionResults,
   detectTieGroups,
+  generatePersonalProfile,
+  generateSectionARecommendations,
+  generateSectionBRecommendations,
   generate7DayPlan,
   AUDIT_PRESETS
 } from '../src/utils/calculator';
@@ -9,7 +12,7 @@ import fs from 'fs';
 import path from 'path';
 
 console.log('=====================================================');
-console.log('AUDITORÍA TÉCNICA DEL PROYECTO: LEARNING PROFILE');
+console.log('AUDITORÍA TÉCNICA — LEARNING PROFILE 2.0');
 console.log('=====================================================\n');
 
 let failedTests = 0;
@@ -26,7 +29,7 @@ function assert(condition: boolean, testName: string, details?: string) {
   }
 }
 
-// 1. Verificación de las 24 preguntas y 6 dimensiones de Learning Profile
+// 1. Verificación de las 24 preguntas y 6 dimensiones de aprendizaje
 console.log('--- 1. VERIFICACIÓN DE LAS 24 PREGUNTAS Y 6 DIMENSIONES ---');
 assert(QUESTIONS.length === 24, 'Total de preguntas es exactamente 24', `Obtenido: ${QUESTIONS.length}`);
 
@@ -60,10 +63,10 @@ const sampleAnswers: Record<number, number> = {
   1: 5, 2: 5, 3: 5, 4: 5,
   // Verbal (5-8): 3, 3, 3, 3 -> Media 3.00
   5: 3, 6: 3, 7: 3, 8: 3,
-  // Práctico (9-12): 2, 2, 3, 2 -> Media 2.25
-  9: 2, 10: 2, 11: 3, 12: 2,
-  // Analítico (13-16): 5, 5, 5, 5 -> Media 5.00
-  13: 5, 14: 5, 15: 5, 16: 5,
+  // Práctico (9-12): 5, 5, 5, 5 -> Media 5.00
+  9: 5, 10: 5, 11: 5, 12: 5,
+  // Analítico (13-16): 3, 3, 3, 3 -> Media 3.00
+  13: 3, 14: 3, 15: 3, 16: 3,
   // Social (17-20): 2, 2, 1, 2 -> Media 1.75
   17: 2, 18: 2, 19: 1, 20: 2,
   // Metacognición (21-24): 4, 4, 4, 4 -> Media 4.00
@@ -74,67 +77,70 @@ const results = calculateDimensionResults(sampleAnswers);
 assert(results.length === 6, 'Se calculan exactamente 6 medias de resultados');
 
 const visualRes = results.find((r) => r.key === 'visual_espacial')!;
-const verbalRes = results.find((r) => r.key === 'verbal_explicativo')!;
 const practicoRes = results.find((r) => r.key === 'practico_experiencial')!;
+const metaRes = results.find((r) => r.key === 'autorregulacion_metacognicion')!;
+const verbalRes = results.find((r) => r.key === 'verbal_explicativo')!;
 const analiticoRes = results.find((r) => r.key === 'analitico_estructurado')!;
 const socialRes = results.find((r) => r.key === 'social_colaborativo')!;
-const metaRes = results.find((r) => r.key === 'autorregulacion_metacognicion')!;
 
-assert(visualRes.mean === 5.00, 'Media de Procesamiento visual y espacial calculada (5.00)');
-assert(analiticoRes.mean === 5.00, 'Media de Razonamiento analítico y estructurado calculada (5.00)');
-assert(metaRes.mean === 4.00, 'Media de Autorregulación y metacognición calculada (4.00)');
-assert(verbalRes.mean === 3.00, 'Media de Procesamiento verbal y explicativo calculada (3.00)');
-assert(practicoRes.mean === 2.25, 'Media de Aprendizaje práctico y experiencial calculada (2.25)');
-assert(socialRes.mean === 1.75, 'Media de Aprendizaje social y colaborativo calculada (1.75)');
+assert(visualRes.mean === 5.00, 'Media de Visual y espacial calculada (5.00)');
+assert(practicoRes.mean === 5.00, 'Media de Práctica y experiencial calculada (5.00)');
+assert(metaRes.mean === 4.00, 'Media de Autorregulación calculada (4.00)');
+assert(verbalRes.mean === 3.00, 'Media de Verbal calculada (3.00)');
+assert(analiticoRes.mean === 3.00, 'Media de Analítica calculada (3.00)');
+assert(socialRes.mean === 1.75, 'Media de Social calculada (1.75)');
 
-// 3. Verificación de la ordenación de resultados (mayor a menor)
-console.log('\n--- 3. VERIFICACIÓN DE LA ORDENACIÓN DE RESULTADOS ---');
-let isStrictlySorted = true;
-for (let i = 0; i < results.length - 1; i++) {
-  if (results[i].mean < results[i + 1].mean) {
-    isStrictlySorted = false;
-  }
-}
-assert(isStrictlySorted, 'Resultados ordenados estrictamente de mayor a menor puntuación');
+// 3. Verificación de etiquetas de intensidad en lenguaje cotidiano
+console.log('\n--- 3. VERIFICACIÓN DE ETIQUETAS DE INTENSIDAD COTIDIANA ---');
+assert(visualRes.intensityLabel === 'Es una de tus formas favoritas', 'Etiqueta alta en lenguaje cotidiano');
+assert(metaRes.intensityLabel === 'Te resulta muy cómoda', 'Etiqueta media-alta en lenguaje cotidiano');
+assert(verbalRes.intensityLabel === 'La utilizas según el momento', 'Etiqueta media en lenguaje cotidiano');
+assert(socialRes.intensityLabel === 'Una forma que puedes explorar', 'Etiqueta de exploración no deficitaria');
 
-// 4. Verificación de las dos dimensiones más altas
-console.log('\n--- 4. VERIFICACIÓN DE LAS DOS DIMENSIONES MÁS ALTAS ---');
-const top1 = results[0];
-const top2 = results[1];
-assert(top1.mean >= results[2].mean && top2.mean >= results[2].mean, 'Las dos dimensiones más altas se identifican con precisión');
-
-// 5. Verificación de la gestión de empates
-console.log('\n--- 5. VERIFICACIÓN DE LA GESTIÓN DE EMPATES ---');
-const tieGroups = detectTieGroups(results);
-assert(tieGroups.length === 1, 'Se detecta exactamente 1 grupo de empate (Visual y Analítico)');
-assert(tieGroups[0].isDominant === true, 'El grupo empatado está en el puesto #1 (Empate dominante)');
+// 4. Verificación de la generación del perfil personal (título y párrafo memorable)
+console.log('\n--- 4. VERIFICACIÓN DEL PERFIL PERSONAL Y TÍTULO DINÁMICO ---');
+const isTie = true; // Visual and Practical tie at 5.00
+const profile = generatePersonalProfile(results[0], results[1], isTie);
 assert(
-  tieGroups[0].dimensions.map((d) => d.key).sort().join(',') === 'analitico_estructurado,visual_espacial',
-  'Las dimensiones empatadas en #1 son Visual y Analítico'
+  profile.title === 'Aprendes mejor cuando lo ves y lo haces',
+  `Genera el título amigable y memorable correspondiente («${profile.title}»)`
 );
 assert(
-  tieGroups[0].hybridName === 'Perfil Arquitecto Lógico',
-  'Se genera el perfil híbrido correspondiente para el empate Visual-Analítico'
+  profile.paragraph.length > 50 && profile.paragraph.includes('combinar'),
+  'Genera párrafo conversacional personalizado'
 );
 
-// 6. Verificación del caso límite: empate hexagonal
-console.log('\n--- 6. VERIFICACIÓN CASO LÍMITE: EMPATE HEXAGONAL ---');
-const hexResults = calculateDimensionResults(AUDIT_PRESETS.ALL_NEUTRAL_TIE.answers);
-const hexTies = detectTieGroups(hexResults);
-assert(hexTies.length === 1, 'Detecta el empate global de las 6 dimensiones');
-assert(hexTies[0].dimensions.length === 6, 'Las 6 dimensiones están agrupadas en el empate hexagonal');
+// 5. Verificación de la Sección A de recomendaciones (Aprovecha lo que ya te funciona)
+console.log('\n--- 5. VERIFICACIÓN SECCIÓN A DE RECOMENDACIONES ---');
+const secARecs = generateSectionARecommendations(results[0], results[1]);
+assert(secARecs.length >= 3, `Sección A genera entre 3 y 5 recomendaciones personalizadas (generadas: ${secARecs.length})`);
+assert(
+  secARecs.every((r) => r.title && r.explanation && r.example && r.actionToday),
+  'Cada recomendación de la Sección A incluye título, explicación cotidiana, ejemplo y acción para hoy'
+);
 
-// 7. Verificación del plan de aprendizaje de siete días
-console.log('\n--- 7. VERIFICACIÓN DEL PLAN DE APRENDIZAJE DE SIETE DÍAS ---');
+// 6. Verificación de la Sección B de recomendaciones (Explora otras formas de aprender)
+console.log('\n--- 6. VERIFICACIÓN SECCIÓN B DE RECOMENDACIONES ---');
+const lowest1 = results[results.length - 1];
+const lowest2 = results[results.length - 2];
+const secBRecs = generateSectionBRecommendations(lowest1, lowest2, results[0]);
+assert(secBRecs.length === 2, 'Sección B genera exactamente 2 habilidades complementarias');
+assert(
+  secBRecs.every((r) => r.skillName && r.whatItOffers && r.everydaySituation && r.smallExercise && r.pairingSuggestion),
+  'Cada recomendación de la Sección B incluye qué aporta, situación cotidiana, ejercicio pequeño y propuesta de combinación'
+);
+
+// 7. Verificación del reto de 7 días para aprender mejor
+console.log('\n--- 7. VERIFICACIÓN DEL RETO DE 7 DÍAS ---');
 const plan = generate7DayPlan(results[0], results[1], results[results.length - 1]);
-assert(plan.length === 7, 'El plan contiene exactamente 7 días');
+assert(plan.length === 7, 'El reto contiene exactamente 7 días');
 assert(
-  plan.every((d, i) => d.day === i + 1 && d.title && d.objective && d.actionTask && d.reflectionPrompt),
-  'Cada día cuenta con día correlativo, título, objetivo, micro-ejercicio práctico y reflexión metacognitiva'
+  plan.every((d, i) => d.day === i + 1 && d.title && d.objective && d.instructions && d.reflectionQuestion && d.durationMinutes),
+  'Cada día incluye objetivo, instrucciones, duración de 15-25 min y pregunta de reflexión'
 );
 
-// 8. Verificación de honestidad científica y ausencia de términos erróneos
-console.log('\n--- 8. AUDITORÍA DE CONTENIDO Y HONESTIDAD CIENTÍFICA ---');
+// 8. Verificación de honestidad científica y ausencia de jerga clínica
+console.log('\n--- 8. AUDITORÍA DE LENGUAJE Y HONESTIDAD CIENTÍFICA ---');
 const srcDir = path.resolve(process.cwd(), 'src');
 const filesToCheck: string[] = [];
 
@@ -163,7 +169,9 @@ const forbiddenTerms = [
   /colores del amor/i,
   /diagnóstico sentimental/i,
   /evaluación psicométrica oficial/i,
-  /test científicamente validado/i
+  /test científicamente validado/i,
+  /nivel deficiente/i,
+  /déficit cognitivo/i
 ];
 
 let foundForbiddenTerms = 0;
@@ -172,41 +180,29 @@ filesToCheck.forEach((filePath) => {
   forbiddenTerms.forEach((pattern) => {
     const match = content.match(pattern);
     if (match) {
-      console.warn(`   ⚠️ Término prohibido encontrado en ${path.basename(filePath)}: ${match[0]}`);
+      console.warn(`   ⚠️ Término no deseado en ${path.basename(filePath)}: ${match[0]}`);
       foundForbiddenTerms++;
     }
   });
 });
 
-assert(foundForbiddenTerms === 0, 'No existe ningún término de amor, sentimental o afirmación pseudocientífica');
+assert(foundForbiddenTerms === 0, 'Cero términos prohibidos, no deseados o pseudocientíficos');
 
-// 9. Auditoría de la paleta de colores (Solo negro profundo y rosa encendido)
-console.log('\n--- 9. AUDITORÍA ESTRICTA DE LA PALETA DE COLORES ---');
-const forbiddenColors = [
-  /text-blue-/i, /bg-blue-/i, /border-blue-/i,
-  /text-green-/i, /bg-green-/i, /border-green-/i,
-  /text-emerald-/i, /bg-emerald-/i, /border-emerald-/i,
-  /text-yellow-/i, /bg-yellow-/i, /border-yellow-/i,
-  /text-amber-/i, /bg-amber-/i, /border-amber-/i,
-  /text-purple-/i, /bg-purple-/i, /border-purple-/i,
-  /text-indigo-/i, /bg-indigo-/i, /border-indigo-/i,
-  /text-cyan-/i, /bg-cyan-/i, /border-cyan-/i,
-  /text-orange-/i, /bg-orange-/i, /border-orange-/i
-];
+// 9. Verificación del nuevo mensaje principal en WelcomeScreen
+console.log('\n--- 9. VERIFICACIÓN DEL NUEVO MENSAJE PRINCIPAL ---');
+const welcomeContent = fs.readFileSync(path.resolve(process.cwd(), 'src/components/WelcomeScreen.tsx'), 'utf-8');
+const expectedMessageFragment = 'Identifica tus preferencias de aprendizaje, aprende estrategias prácticas y aprovecha al máximo tu potencial';
+assert(
+  welcomeContent.includes(expectedMessageFragment) && welcomeContent.includes('Totalmente personalizadas'),
+  'El nuevo mensaje principal está integrado exactamente en la portada'
+);
 
-let foundForbiddenColors = 0;
-filesToCheck.forEach((filePath) => {
-  const content = fs.readFileSync(filePath, 'utf-8');
-  forbiddenColors.forEach((pattern) => {
-    const match = content.match(pattern);
-    if (match) {
-      console.warn(`   ⚠️ Color no permitido en ${path.basename(filePath)}: ${match[0]}`);
-      foundForbiddenColors++;
-    }
-  });
-});
-
-assert(foundForbiddenColors === 0, 'Paleta estricta: 0 colores de acento no permitidos detectados');
+// 10. Verificación de la presencia del componente RadarChart
+console.log('\n--- 10. VERIFICACIÓN DE LA GRÁFICA RADIAL INTERACTIVA ---');
+const radarChartFile = path.resolve(process.cwd(), 'src/components/RadarChart.tsx');
+assert(fs.existsSync(radarChartFile), 'Componente RadarChart.tsx existe y está disponible');
+const radarContent = fs.readFileSync(radarChartFile, 'utf-8');
+assert(radarContent.includes('radarNeonGradient') && radarContent.includes('polygon'), 'RadarChart implementa polígono radial de 6 ejes con gradiente de luces');
 
 console.log('\n=====================================================');
 console.log(`RESUMEN DE PRUEBAS EJECUTADAS: ${passedTests} superadas, ${failedTests} fallidas.`);

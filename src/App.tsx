@@ -186,23 +186,23 @@ export default function App() {
     if (directToReport) {
       computeAndSetResults(randomAnswers);
       setCurrentStep('report');
-      showToast('24 respuestas aleatorias calculadas.');
+      showToast('24 respuestas generadas.');
     } else {
       setCurrentIndex(0);
       setCurrentStep('quiz');
-      showToast('24 respuestas aleatorias generadas.');
+      showToast('24 respuestas cargadas en el cuestionario.');
     }
   };
 
   const handleSimulateTie = () => {
-    handleApplyPreset(AUDIT_PRESETS.EXACT_TIE_VISUAL_ANALYTICAL.answers, true);
-    showToast('Escenario de empate cargado (Visual 5.00 vs Analítico 5.00).');
+    handleApplyPreset(AUDIT_PRESETS.EXACT_TIE_VISUAL_PRACTICAL.answers, true);
+    showToast('Escenario de empate cargado: Visual y Práctico en 5.00.');
   };
 
   const answeredCount = Object.keys(answers).length;
 
   return (
-    <div className="min-h-screen bg-black text-white font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#ff007f] selection:text-white flex flex-col justify-between">
+    <div className="min-h-screen bg-[#08070B] text-[#FFF8FC] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#FF2D95] selection:text-white flex flex-col justify-between relative bg-grid-lights">
       <div>
         <Header
           currentStep={currentStep}
@@ -252,14 +252,14 @@ export default function App() {
       </div>
 
       {/* Footer */}
-      <footer className="w-full border-t border-zinc-900 py-6 px-4 text-center text-xs text-zinc-400 bg-black">
+      <footer className="w-full border-t border-[#252030] py-6 px-4 text-center text-xs text-[#B8ADBF] bg-[#08070B]/90 relative z-10">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="flex items-center gap-1.5">
-            <span>Learning Profile • Cuestionario interactivo de preferencias de aprendizaje.</span>
+            <span>Learning Profile • Descubre cómo aprendes mejor.</span>
           </p>
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#ff007f]" />
-            <span className="text-zinc-300">Paleta: Negro Profundo & Rosa Encendido</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-[#FF2D95] shadow-[0_0_8px_#FF2D95]" />
+            <span className="text-[#FFF8FC] font-semibold">Black + Neon Pink Visual Experience</span>
           </div>
         </div>
       </footer>

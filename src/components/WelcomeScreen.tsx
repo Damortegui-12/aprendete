@@ -1,5 +1,15 @@
 import React from 'react';
-import { ArrowRight, Clock, Layers, CheckCircle2, ShieldCheck, Sparkles, BookOpen } from 'lucide-react';
+import {
+  ArrowRight,
+  Clock,
+  Layers,
+  CheckCircle2,
+  Sparkles,
+  BookOpen,
+  HeartHandshake,
+  Compass,
+  Zap
+} from 'lucide-react';
 import { DIMENSIONS } from '../data/questions';
 import { DimensionKey } from '../types';
 
@@ -21,39 +31,49 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   const dimensionKeys = Object.keys(DIMENSIONS) as DimensionKey[];
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 sm:py-14">
-      {/* Product Tag */}
-      <div className="text-center mb-5">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#ff007f]/10 border border-[#ff007f]/40 text-[#ff007f] text-xs font-bold tracking-widest uppercase shadow-[0_0_15px_rgba(255,0,127,0.2)]">
-          <BookOpen className="w-3.5 h-3.5" />
+    <div className="max-w-4xl mx-auto px-4 py-8 sm:py-16 text-[#FFF8FC] relative">
+      {/* Background Neon Lights and Glows */}
+      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[500px] h-[350px] bg-gradient-to-tr from-[#FF2D95]/20 via-[#8B5CF6]/15 to-transparent rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute top-40 right-10 w-[240px] h-[240px] bg-[#36CFFF]/10 rounded-full blur-[90px] pointer-events-none" />
+
+      {/* Brand Tag / Badge */}
+      <div className="text-center mb-6 relative z-10">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#121018] border border-[#FF2D95]/40 text-[#FF69C8] text-xs font-bold tracking-widest uppercase shadow-[0_0_20px_rgba(255,45,149,0.25)]">
+          <Zap className="w-3.5 h-3.5 text-[#FF2D95] fill-[#FF2D95]" />
           Learning Profile
         </div>
       </div>
 
       {/* Main Title & Hero */}
-      <div className="text-center max-w-2xl mx-auto mb-10">
-        <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-4 font-['Space_Grotesk'] leading-[1.15]">
-          Descubre cómo aprendes mejor.
+      <div className="text-center max-w-3xl mx-auto mb-10 relative z-10">
+        <h1 className="text-3xl sm:text-6xl font-extrabold tracking-tight text-[#FFF8FC] mb-5 font-['Space_Grotesk'] leading-[1.12]">
+          Descubre cómo <br className="hidden sm:inline" />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF2D95] via-[#FF69C8] to-[#8B5CF6] drop-shadow-[0_0_25px_rgba(255,45,149,0.45)]">
+            aprendes mejor.
+          </span>
         </h1>
-        <p className="text-base sm:text-lg text-zinc-300 leading-relaxed font-normal">
-          «Un test interactivo para identificar tus preferencias de aprendizaje y recibir estrategias prácticas y personalizadas».
+
+        {/* Updated Main Message: EXACT PHRASING */}
+        <p className="text-base sm:text-xl text-[#B8ADBF] leading-relaxed font-normal max-w-2xl mx-auto">
+          «Identifica tus preferencias de aprendizaje, aprende estrategias prácticas y aprovecha al máximo tu potencial.{' '}
+          <span className="text-[#FFF8FC] font-semibold block sm:inline">Totalmente personalizadas.</span>»
         </p>
       </div>
 
       {/* Primary Action Button: Comenzar */}
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-12">
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14 relative z-10">
         {hasSavedProgress ? (
           <>
             <button
               onClick={onResume}
-              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-[#ff007f] hover:bg-[#ff1493] text-white text-base font-extrabold tracking-wide transition-all shadow-[0_0_30px_rgba(255,0,127,0.5)] hover:shadow-[0_0_40px_rgba(255,0,127,0.7)] flex items-center justify-center gap-3 cursor-pointer group"
+              className="w-full sm:w-auto px-9 py-4 rounded-2xl bg-[#FF2D95] hover:bg-[#FF69C8] text-white text-base font-extrabold tracking-wide transition-all shadow-[0_0_30px_rgba(255,45,149,0.6)] hover:shadow-[0_0_45px_rgba(255,45,149,0.85)] flex items-center justify-center gap-3 cursor-pointer group active:scale-[0.98]"
             >
-              <span>Continuar Cuestionario ({savedAnswersCount}/24)</span>
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              <span>Continuar cuestionario ({savedAnswersCount}/24)</span>
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform" />
             </button>
             <button
               onClick={onStart}
-              className="w-full sm:w-auto px-6 py-4 rounded-xl border border-zinc-800 bg-zinc-950/80 hover:border-[#ff007f]/50 text-zinc-300 hover:text-white text-sm font-semibold transition-all cursor-pointer"
+              className="w-full sm:w-auto px-6 py-4 rounded-2xl border border-[#2D2838] bg-[#121018] hover:border-[#FF2D95]/50 text-[#B8ADBF] hover:text-[#FFF8FC] text-sm font-semibold transition-all cursor-pointer"
             >
               Comenzar desde cero
             </button>
@@ -61,7 +81,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         ) : (
           <button
             onClick={onStart}
-            className="w-full sm:w-auto px-10 py-4 rounded-xl bg-gradient-to-r from-[#ff007f] to-[#ff1493] hover:from-[#ff1493] hover:to-[#ff007f] text-white text-lg font-extrabold tracking-wide transition-all shadow-[0_0_30px_rgba(255,0,127,0.5)] hover:shadow-[0_0_45px_rgba(255,0,127,0.8)] flex items-center justify-center gap-3 cursor-pointer group active:scale-[0.98]"
+            className="w-full sm:w-auto px-11 py-4.5 rounded-2xl bg-gradient-to-r from-[#FF2D95] to-[#e61e84] hover:from-[#FF69C8] hover:to-[#FF2D95] text-white text-lg font-extrabold tracking-wide transition-all shadow-[0_0_35px_rgba(255,45,149,0.65)] hover:shadow-[0_0_50px_rgba(255,45,149,0.9)] flex items-center justify-center gap-3 cursor-pointer group active:scale-[0.98]"
           >
             <span>Comenzar</span>
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform" />
@@ -69,74 +89,85 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         )}
       </div>
 
-      {/* Required Indicators */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-12">
-        <div className="p-4 rounded-xl bg-[#09090d] border border-zinc-800/80 flex flex-col items-center text-center">
-          <div className="w-8 h-8 rounded-lg bg-[#ff007f]/10 border border-[#ff007f]/30 flex items-center justify-center text-[#ff007f] mb-2">
-            <Layers className="w-4 h-4" />
+      {/* 4 Required Indicators Styled in Dark Luminous Glass */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-14 relative z-10">
+        <div className="p-4 sm:p-5 rounded-2xl bg-[#121018] border border-[#2D2838] hover:border-[#FF2D95]/40 flex flex-col items-center text-center shadow-lg transition-all group">
+          <div className="w-10 h-10 rounded-xl bg-[#8B5CF6]/15 border border-[#8B5CF6]/30 text-[#A78BFA] flex items-center justify-center mb-2.5 shadow-[0_0_12px_rgba(139,92,246,0.3)]">
+            <Layers className="w-5 h-5" />
           </div>
-          <span className="text-white font-bold text-sm">24 preguntas</span>
-          <span className="text-zinc-400 text-xs mt-0.5">Distribución equitativa</span>
+          <span className="text-[#FFF8FC] font-bold text-sm">24 preguntas</span>
+          <span className="text-[#B8ADBF] text-xs mt-0.5">Sencillas y directas</span>
         </div>
 
-        <div className="p-4 rounded-xl bg-[#09090d] border border-zinc-800/80 flex flex-col items-center text-center">
-          <div className="w-8 h-8 rounded-lg bg-[#ff007f]/10 border border-[#ff007f]/30 flex items-center justify-center text-[#ff007f] mb-2">
-            <Clock className="w-4 h-4" />
+        <div className="p-4 sm:p-5 rounded-2xl bg-[#121018] border border-[#2D2838] hover:border-[#FFE45E]/40 flex flex-col items-center text-center shadow-lg transition-all group">
+          <div className="w-10 h-10 rounded-xl bg-[#FFE45E]/15 border border-[#FFE45E]/30 text-[#FFE45E] flex items-center justify-center mb-2.5 shadow-[0_0_12px_rgba(255,228,94,0.3)]">
+            <Clock className="w-5 h-5" />
           </div>
-          <span className="text-white font-bold text-sm">5–7 minutos</span>
-          <span className="text-zinc-400 text-xs mt-0.5">Respuestas breves</span>
+          <span className="text-[#FFF8FC] font-bold text-sm">5–7 minutos</span>
+          <span className="text-[#B8ADBF] text-xs mt-0.5">A tu propio ritmo</span>
         </div>
 
-        <div className="p-4 rounded-xl bg-[#09090d] border border-zinc-800/80 flex flex-col items-center text-center">
-          <div className="w-8 h-8 rounded-lg bg-[#ff007f]/10 border border-[#ff007f]/30 flex items-center justify-center text-[#ff007f] mb-2">
-            <Sparkles className="w-4 h-4" />
+        <div className="p-4 sm:p-5 rounded-2xl bg-[#121018] border border-[#2D2838] hover:border-[#FF2D95]/40 flex flex-col items-center text-center shadow-lg transition-all group">
+          <div className="w-10 h-10 rounded-xl bg-[#FF2D95]/15 border border-[#FF2D95]/30 text-[#FF69C8] flex items-center justify-center mb-2.5 shadow-[0_0_12px_rgba(255,45,149,0.3)]">
+            <Sparkles className="w-5 h-5" />
           </div>
-          <span className="text-white font-bold text-sm">Seis dimensiones</span>
-          <span className="text-zinc-400 text-xs mt-0.5">Medias aritméticas</span>
+          <span className="text-[#FFF8FC] font-bold text-sm">Seis dimensiones</span>
+          <span className="text-[#B8ADBF] text-xs mt-0.5">Gráfica radial real</span>
         </div>
 
-        <div className="p-4 rounded-xl bg-[#09090d] border border-zinc-800/80 flex flex-col items-center text-center">
-          <div className="w-8 h-8 rounded-lg bg-[#ff007f]/10 border border-[#ff007f]/30 flex items-center justify-center text-[#ff007f] mb-2">
-            <CheckCircle2 className="w-4 h-4" />
+        <div className="p-4 sm:p-5 rounded-2xl bg-[#121018] border border-[#2D2838] hover:border-[#36CFFF]/40 flex flex-col items-center text-center shadow-lg transition-all group">
+          <div className="w-10 h-10 rounded-xl bg-[#36CFFF]/15 border border-[#36CFFF]/30 text-[#36CFFF] flex items-center justify-center mb-2.5 shadow-[0_0_12px_rgba(54,207,255,0.3)]">
+            <CheckCircle2 className="w-5 h-5" />
           </div>
-          <span className="text-white font-bold text-sm">Gratis y sin registro</span>
-          <span className="text-zinc-400 text-xs mt-0.5">100% confidencial</span>
+          <span className="text-[#FFF8FC] font-bold text-sm">Gratis y sin registro</span>
+          <span className="text-[#B8ADBF] text-xs mt-0.5">100% privado</span>
         </div>
       </div>
 
-      {/* The 6 Dimensions Grid */}
-      <div className="bg-[#08080c] border border-zinc-800/80 rounded-2xl p-6 sm:p-8 mb-8 shadow-[0_0_20px_rgba(0,0,0,0.8)]">
+      {/* The 6 Learning Skills Overview */}
+      <div className="bg-[#121018] border border-[#2D2838] rounded-3xl p-6 sm:p-8 mb-10 shadow-2xl relative z-10">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
           <div>
-            <h2 className="text-xl font-bold text-white font-['Space_Grotesk']">
-              Las Seis Dimensiones Evaluadas
+            <h2 className="text-xl font-bold text-[#FFF8FC] font-['Space_Grotesk']">
+              Las 6 formas de aprender que exploraremos
             </h2>
-            <p className="text-xs text-zinc-400">
-              Cada dimensión se calcula como la media aritmética de sus 4 preguntas correspondientes.
+            <p className="text-xs text-[#B8ADBF]">
+              Cada habilidad se evalúa con 4 preguntas para construir tu mapa radial y recomendaciones personalizadas.
             </p>
           </div>
-          <span className="text-xs font-bold px-3 py-1 rounded-full bg-[#ff007f]/15 border border-[#ff007f]/40 text-[#ff007f] self-start sm:self-auto">
-            4 PREGUNTAS × 6 DIMENSIONES = 24
+          <span className="text-xs font-semibold px-3 py-1 rounded-full bg-[#1A1724] border border-[#2D2838] text-[#FF69C8] self-start sm:self-auto">
+            4 preguntas × 6 habilidades = 24
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-          {dimensionKeys.map((key, index) => {
+          {dimensionKeys.map((key) => {
             const dim = DIMENSIONS[key];
             return (
               <div
                 key={key}
-                className="p-4 rounded-xl bg-black border border-zinc-800/70 hover:border-[#ff007f]/50 transition-all group"
+                className="p-4 rounded-2xl border transition-all group"
+                style={{
+                  backgroundColor: dim.theme.bg,
+                  borderColor: dim.theme.border
+                }}
               >
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="font-bold text-sm text-white group-hover:text-[#ff007f] transition-colors">
-                    {dim.name}
+                  <span className="font-bold text-sm text-[#FFF8FC] group-hover:text-[#FF69C8] transition-colors">
+                    {dim.friendlyName}
                   </span>
-                  <span className="text-[10px] font-mono text-[#ff007f] font-bold">
-                    0{index + 1}
+                  <span
+                    className="text-[10px] font-bold px-2 py-0.5 rounded-full border"
+                    style={{
+                      backgroundColor: dim.theme.badgeBg,
+                      color: dim.theme.badgeText,
+                      borderColor: dim.theme.border
+                    }}
+                  >
+                    Habilidad
                   </span>
                 </div>
-                <p className="text-xs text-zinc-300 line-clamp-2 leading-relaxed">
+                <p className="text-xs text-[#B8ADBF] line-clamp-2 leading-relaxed">
                   {dim.tagline}
                 </p>
               </div>
@@ -145,24 +176,24 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         </div>
       </div>
 
-      {/* Honestidad Científica / Nota Aclaratoria */}
-      <div className="p-4 rounded-xl border border-zinc-800 bg-[#060609] text-xs text-zinc-400 flex items-start gap-3 mb-6">
-        <ShieldCheck className="w-5 h-5 text-[#ff007f] shrink-0 mt-0.5" />
+      {/* Discrete Disclaimer */}
+      <div className="p-4 sm:p-5 rounded-2xl bg-[#121018] border border-[#2D2838] text-xs text-[#B8ADBF] flex items-start gap-3.5 mb-8 shadow-md relative z-10">
+        <HeartHandshake className="w-5 h-5 text-[#FF2D95] shrink-0 mt-0.5" />
         <p className="leading-relaxed">
-          <strong className="text-zinc-200">Nota informativa:</strong> Este producto es un cuestionario orientativo de preferencias y estrategias de aprendizaje. Su objetivo es brindar pautas prácticas de reflexión personal y organización del estudio; no constituye un diagnóstico clínico ni una evaluación psicométrica validada.
+          «Este resultado es una guía para explorar tus preferencias de aprendizaje, no una etiqueta definitiva. Puedes aprender de muchas maneras y descubrir nuevas estrategias con la práctica».
         </p>
       </div>
 
-      {/* Auditoría / Prueba Rápida */}
-      <div className="p-3.5 rounded-xl border border-dashed border-[#ff007f]/30 bg-[#ff007f]/5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-        <span className="text-zinc-300 text-center sm:text-left">
-          <strong>Acceso de auditoría:</strong> Permite simular respuestas para comprobar el cálculo de medias, empates y el plan de siete días.
+      {/* Test / Audit Shortcut */}
+      <div className="p-3.5 rounded-2xl border border-dashed border-[#2D2838] bg-[#0E0C14] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs relative z-10">
+        <span className="text-[#B8ADBF] text-center sm:text-left">
+          <strong>Acceso de prueba:</strong> Puedes cargar respuestas de ejemplo para ver la gráfica radial y las recomendaciones de inmediato.
         </span>
         <button
           onClick={onOpenAudit}
-          className="px-3.5 py-1.5 rounded-lg bg-[#ff007f]/20 hover:bg-[#ff007f] text-white font-semibold transition-all shrink-0 cursor-pointer"
+          className="px-3.5 py-1.5 rounded-xl bg-[#1A1724] border border-[#2D2838] hover:border-[#FF2D95] text-[#FFF8FC] font-semibold transition-all shrink-0 cursor-pointer"
         >
-          Cargar Pruebas
+          Cargar ejemplos
         </button>
       </div>
     </div>

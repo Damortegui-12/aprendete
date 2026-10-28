@@ -6,17 +6,28 @@ export type DimensionKey =
   | 'social_colaborativo'
   | 'autorregulacion_metacognicion';
 
+export interface SkillColorTheme {
+  bg: string;
+  badgeBg: string;
+  badgeText: string;
+  border: string;
+  barColor: string;
+  accentText: string;
+}
+
 export interface DimensionMeta {
   key: DimensionKey;
   name: string;
   shortName: string;
+  friendlyName: string;
   tagline: string;
   summary: string;
-  coreStrength: string;
+  everydayDescription: string;
+  dailyLifeManifestation: string;
+  studyWorkExample: string;
+  quickAction: string;
   techniques: string[];
-  vulnerabilities: string[];
-  practicalAdvice: string;
-  idealEnvironment: string;
+  theme: SkillColorTheme;
 }
 
 export interface Question {
@@ -31,6 +42,7 @@ export interface DimensionResult {
   key: DimensionKey;
   name: string;
   shortName: string;
+  friendlyName: string;
   tagline: string;
   mean: number; // 1.00 to 5.00
   sum: number; // 4 to 20
@@ -39,12 +51,40 @@ export interface DimensionResult {
   isTied: boolean;
   tiedKeys: DimensionKey[];
   meta: DimensionMeta;
+  intensityLabel: string;
+}
+
+export interface UserPersonalProfile {
+  title: string;
+  paragraph: string;
+  topSkill1: DimensionResult;
+  topSkill2: DimensionResult;
+  isTie: boolean;
+}
+
+export interface SectionARecommendation {
+  id: string;
+  title: string;
+  explanation: string;
+  example: string;
+  actionToday: string;
+  skillKey: DimensionKey;
+}
+
+export interface SectionBRecommendation {
+  id: string;
+  skillName: string;
+  skillKey: DimensionKey;
+  whatItOffers: string;
+  everydaySituation: string;
+  smallExercise: string;
+  pairingSuggestion: string;
 }
 
 export interface TieGroup {
   mean: number;
   dimensions: DimensionResult[];
-  isDominant: boolean; // if rank is 1
+  isDominant: boolean;
   hybridName?: string;
   hybridDescription?: string;
 }
@@ -54,9 +94,10 @@ export interface DayPlanItem {
   title: string;
   theme: string;
   dimensionKey: DimensionKey;
+  durationMinutes: string; // e.g. "15-20 min"
   objective: string;
-  actionTask: string;
-  reflectionPrompt: string;
+  instructions: string;
+  reflectionQuestion: string;
   completed: boolean;
 }
 
