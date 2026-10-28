@@ -3,8 +3,7 @@ import {
   calculateDimensionResults,
   detectTieGroups,
   generatePersonalProfile,
-  generateSectionARecommendations,
-  generateSectionBRecommendations,
+  generateFodaAnalysis,
   generate7DayPlan,
   AUDIT_PRESETS
 } from '../src/utils/calculator';
@@ -12,7 +11,7 @@ import fs from 'fs';
 import path from 'path';
 
 console.log('=====================================================');
-console.log('AUDITORÍA TÉCNICA — LEARNING PROFILE 2.0');
+console.log('AUDITORÍA TÉCNICA — APRÉNDETE: FODA & KPIS');
 console.log('=====================================================\n');
 
 let failedTests = 0;
@@ -110,37 +109,69 @@ assert(
   'Genera párrafo conversacional personalizado'
 );
 
-// 5. Verificación de la Sección A de recomendaciones (Aprovecha lo que ya te funciona)
-console.log('\n--- 5. VERIFICACIÓN SECCIÓN A DE RECOMENDACIONES ---');
-const secARecs = generateSectionARecommendations(results[0], results[1]);
-assert(secARecs.length >= 3, `Sección A genera entre 3 y 5 recomendaciones personalizadas (generadas: ${secARecs.length})`);
-assert(
-  secARecs.every((r) => r.title && r.explanation && r.example && r.actionToday),
-  'Cada recomendación de la Sección A incluye título, explicación cotidiana, ejemplo y acción para hoy'
-);
-
-// 6. Verificación de la Sección B de recomendaciones (Explora otras formas de aprender)
-console.log('\n--- 6. VERIFICACIÓN SECCIÓN B DE RECOMENDACIONES ---');
+// 5. Verificación de la Sección Unificada FODA y Recomendaciones Estratégicas
+console.log('\n--- 5. VERIFICACIÓN DEL ANÁLISIS FODA Y RECOMENDACIONES ESTRATÉGICAS ---');
 const lowest1 = results[results.length - 1];
 const lowest2 = results[results.length - 2];
-const secBRecs = generateSectionBRecommendations(lowest1, lowest2, results[0]);
-assert(secBRecs.length === 2, 'Sección B genera exactamente 2 habilidades complementarias');
+const foda = generateFodaAnalysis(results[0], results[1], lowest1, lowest2);
+
+assert(foda.fortalezas.items.length >= 3, 'Cuadrante Fortalezas (F) contiene al menos 3 factores clave');
+assert(foda.oportunidades.items.length >= 3, 'Cuadrante Oportunidades (O) contiene al menos 3 factores clave');
+assert(foda.debilidades.items.length >= 3, 'Cuadrante Puntos a cuidar (D) contiene al menos 3 factores clave');
+assert(foda.amenazas.items.length >= 3, 'Cuadrante Amenazas (A) contiene al menos 3 factores clave');
+
 assert(
-  secBRecs.every((r) => r.skillName && r.whatItOffers && r.everydaySituation && r.smallExercise && r.pairingSuggestion),
-  'Cada recomendación de la Sección B incluye qué aporta, situación cotidiana, ejercicio pequeño y propuesta de combinación'
+  foda.recommendations.length === 4,
+  `Se generan exactamente 4 recomendaciones estratégicas cruzadas (FO, FA, DO, DA). Obtenidas: ${foda.recommendations.length}`
 );
 
-// 7. Verificación del reto de 7 días para aprender mejor
-console.log('\n--- 7. VERIFICACIÓN DEL RETO DE 7 DÍAS ---');
+const strategyCodes = foda.recommendations.map((r) => r.strategyCode);
+assert(
+  strategyCodes.includes('FO') && strategyCodes.includes('FA') && strategyCodes.includes('DO') && strategyCodes.includes('DA'),
+  'Las 4 recomendaciones cubren las estrategias FO, FA, DO y DA'
+);
+
+assert(
+  foda.recommendations.every((r) => r.title && r.rationale && r.concreteExample && r.actionToday && r.kpiDeliverable),
+  'Cada recomendación estratégica incluye título, fundamento del FODA, ejemplo, acción para hoy y KPI entregable'
+);
+
+// 6. Verificación del reto de 7 días con ENTREGABLES (KPI) en cada día
+console.log('\n--- 6. VERIFICACIÓN DEL RETO DE 7 DÍAS CON ENTREGABLES (KPI) ---');
 const plan = generate7DayPlan(results[0], results[1], results[results.length - 1]);
 assert(plan.length === 7, 'El reto contiene exactamente 7 días');
 assert(
   plan.every((d, i) => d.day === i + 1 && d.title && d.objective && d.instructions && d.reflectionQuestion && d.durationMinutes),
   'Cada día incluye objetivo, instrucciones, duración de 15-25 min y pregunta de reflexión'
 );
+assert(
+  plan.every((d) => d.kpiDeliverable && d.kpiDeliverable.toLowerCase().includes('kpi')),
+  'Cada uno de los 7 días incluye un resultado esperado explícito / Entregable que funciona como KPI'
+);
 
-// 8. Verificación de honestidad científica y ausencia de jerga clínica
-console.log('\n--- 8. AUDITORÍA DE LENGUAJE Y HONESTIDAD CIENTÍFICA ---');
+// 7. Verificación del titular SIN comillas en ReportScreen
+console.log('\n--- 7. VERIFICACIÓN DEL TITULAR SIN COMILLAS ---');
+const reportScreenContent = fs.readFileSync(path.resolve(process.cwd(), 'src/components/ReportScreen.tsx'), 'utf-8');
+assert(
+  reportScreenContent.includes('>Así es como te resulta más fácil aprender<') ||
+  reportScreenContent.includes('Así es como te resulta más fácil aprender\n'),
+  'El encabezado en ReportScreen no tiene comillas (« »)'
+);
+assert(
+  !reportScreenContent.includes('«Así es como te resulta más fácil aprender»'),
+  'Se han eliminado completamente las comillas del titular «Así es como te resulta más fácil aprender»'
+);
+
+// 8. Verificación de eliminación de "Black + Neon Pink Visual Experience" en el pie de página
+console.log('\n--- 8. VERIFICACIÓN DE ELIMINACIÓN EN PIE DE PÁGINA ---');
+const appContent = fs.readFileSync(path.resolve(process.cwd(), 'src/App.tsx'), 'utf-8');
+assert(
+  !appContent.includes('Black + Neon Pink Visual Experience'),
+  '«Black + Neon Pink Visual Experience» ha sido eliminado del pie de página'
+);
+
+// 9. Verificación de honestidad científica y ausencia de jerga clínica o conceptos amorosos
+console.log('\n--- 9. AUDITORÍA DE LENGUAJE Y HONESTIDAD CIENTÍFICA ---');
 const srcDir = path.resolve(process.cwd(), 'src');
 const filesToCheck: string[] = [];
 
@@ -187,15 +218,6 @@ filesToCheck.forEach((filePath) => {
 });
 
 assert(foundForbiddenTerms === 0, 'Cero términos prohibidos, no deseados o pseudocientíficos');
-
-// 9. Verificación del nuevo mensaje principal en WelcomeScreen
-console.log('\n--- 9. VERIFICACIÓN DEL NUEVO MENSAJE PRINCIPAL ---');
-const welcomeContent = fs.readFileSync(path.resolve(process.cwd(), 'src/components/WelcomeScreen.tsx'), 'utf-8');
-const expectedMessageFragment = 'Identifica tus preferencias de aprendizaje, aprende estrategias prácticas y aprovecha al máximo tu potencial';
-assert(
-  welcomeContent.includes(expectedMessageFragment) && welcomeContent.includes('Totalmente personalizadas'),
-  'El nuevo mensaje principal está integrado exactamente en la portada'
-);
 
 // 10. Verificación de la presencia del componente RadarChart
 console.log('\n--- 10. VERIFICACIÓN DE LA GRÁFICA RADIAL INTERACTIVA ---');

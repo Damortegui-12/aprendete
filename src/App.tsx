@@ -255,12 +255,12 @@ export default function App() {
       <footer className="w-full border-t border-[#252030] py-6 px-4 text-center text-xs text-[#B8ADBF] bg-[#08070B]/90 relative z-10">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="flex items-center gap-1.5">
-            <span>Learning Profile • Descubre cómo aprendes mejor.</span>
+            <span className="font-semibold text-[#FFF8FC]">Apréndete</span>
+            <span>• Descubre cómo aprendes mejor.</span>
           </p>
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#FF2D95] shadow-[0_0_8px_#FF2D95]" />
-            <span className="text-[#FFF8FC] font-semibold">Black + Neon Pink Visual Experience</span>
-          </div>
+          <p className="text-xs text-[#B8ADBF]">
+            Cuestionario de preferencias y estrategias de aprendizaje
+          </p>
         </div>
       </footer>
 

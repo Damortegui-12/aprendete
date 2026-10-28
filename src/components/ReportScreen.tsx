@@ -7,14 +7,14 @@ import {
   Printer,
   CheckCircle2,
   Calendar,
-  Compass,
   Check,
   HeartHandshake,
-  Lightbulb,
-  ArrowRight,
-  HelpCircle,
-  BarChart3,
-  Radar
+  Target,
+  ShieldAlert,
+  TrendingUp,
+  Compass,
+  Zap,
+  HelpCircle
 } from 'lucide-react';
 import {
   DimensionResult,
@@ -24,10 +24,8 @@ import {
 } from '../types';
 import {
   generatePersonalProfile,
-  generateSectionARecommendations,
-  generateSectionBRecommendations
+  generateFodaAnalysis
 } from '../utils/calculator';
-import { DIMENSIONS } from '../data/questions';
 import { RadarChart } from './RadarChart';
 
 interface ReportScreenProps {
@@ -48,8 +46,7 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
   onToggleDayPlan,
   onResetDayPlan,
   onRequestReset,
-  onShowToast,
-  onSimulateTie
+  onShowToast
 }) => {
   const [selectedSkillKey, setSelectedSkillKey] = useState<DimensionKey | null>(null);
 
@@ -61,10 +58,9 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
 
   const isDominantTie = tieGroups.some((g) => g.isDominant);
 
-  // Generate personal profile & recommendations
+  // Generate personal profile & unified FODA analysis
   const personalProfile = generatePersonalProfile(top1, top2, isDominantTie);
-  const sectionARecs = generateSectionARecommendations(top1, top2);
-  const sectionBRecs = generateSectionBRecommendations(lowest1, lowest2, top1);
+  const foda = generateFodaAnalysis(top1, top2, lowest1, lowest2);
 
   const completedDaysCount = dayPlan.filter((d) => d.completed).length;
   const planProgressPercent = Math.round((completedDaysCount / 7) * 100);
@@ -72,7 +68,7 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
   // Real action: Copy report
   const handleCopyReport = async () => {
     const textReport = `===========================================
-LEARNING PROFILE — ASÍ ES COMO TE RESULTA MÁS FÁCIL APRENDER
+APRÉNDETE — ASÍ ES COMO TE RESULTA MÁS FÁCIL APRENDER
 ===========================================
 Perfil: ${personalProfile.title}
 
@@ -81,21 +77,37 @@ ${personalProfile.paragraph}
 TUS FORMAS DE APRENDER (Medias de 1.00 a 5.00):
 ${results.map((r, i) => `${i + 1}. ${r.friendlyName.padEnd(30)}: ${r.mean.toFixed(2)}/5.00 — ${r.intensityLabel}`).join('\n')}
 
-SECCIÓN A: APROVECHA LO QUE YA TE FUNCIONA
-${sectionARecs.map((r) => `• ${r.title}\n  ${r.explanation}\n  Acción para hoy: ${r.actionToday}`).join('\n\n')}
+-------------------------------------------
+ANÁLISIS FODA DEL APRENDIZAJE:
+-------------------------------------------
+[F] FORTALEZAS:
+${foda.fortalezas.items.map((it) => `• ${it.title}: ${it.description}`).join('\n')}
 
-SECCIÓN B: EXPLORA OTRAS FORMAS DE APRENDER
-${sectionBRecs.map((r) => `• ${r.skillName}\n  Qué te aporta: ${r.whatItOffers}\n  Pequeño ejercicio: ${r.smallExercise}\n  Cómo combinarla: ${r.pairingSuggestion}`).join('\n\n')}
+[O] OPORTUNIDADES:
+${foda.oportunidades.items.map((it) => `• ${it.title}: ${it.description}`).join('\n')}
 
+[D] PUNTOS A CUIDAR:
+${foda.debilidades.items.map((it) => `• ${it.title}: ${it.description}`).join('\n')}
+
+[A] AMENAZAS Y FRICCIONES:
+${foda.amenazas.items.map((it) => `• ${it.title}: ${it.description}`).join('\n')}
+
+-------------------------------------------
+RECOMENDACIONES ESTRATÉGICAS BASADAS EN EL FODA:
+-------------------------------------------
+${foda.recommendations.map((r) => `[${r.strategyCode}] ${r.title}\n  Fundamento: ${r.rationale}\n  Acción para hoy: ${r.actionToday}\n  ${r.kpiDeliverable}`).join('\n\n')}
+
+-------------------------------------------
 TU RETO DE 7 DÍAS PARA APRENDER MEJOR:
-${dayPlan.map((d) => `[${d.completed ? 'COMPLETADO' : 'PENDIENTE'}] Día ${d.day} (${d.durationMinutes}): ${d.title}\n  ${d.instructions}\n  Reflexión: ${d.reflectionQuestion}`).join('\n\n')}
+-------------------------------------------
+${dayPlan.map((d) => `[${d.completed ? 'COMPLETADO' : 'PENDIENTE'}] Día ${d.day} (${d.durationMinutes}): ${d.title}\n  Instrucciones: ${d.instructions}\n  ${d.kpiDeliverable}\n  Reflexión: ${d.reflectionQuestion}`).join('\n\n')}
 
 Aviso: Este resultado es una guía para explorar tus preferencias de aprendizaje, no una etiqueta definitiva. Puedes aprender de muchas maneras y descubrir nuevas estrategias con la práctica.
 ===========================================`;
 
     try {
       await navigator.clipboard.writeText(textReport);
-      onShowToast('¡Resultados copiados al portapapeles!');
+      onShowToast('¡Informe y FODA copiados al portapapeles!');
     } catch {
       const textarea = document.createElement('textarea');
       textarea.value = textReport;
@@ -103,28 +115,38 @@ Aviso: Este resultado es una guía para explorar tus preferencias de aprendizaje
       textarea.select();
       document.execCommand('copy');
       document.body.removeChild(textarea);
-      onShowToast('¡Resultados copiados al portapapeles!');
+      onShowToast('¡Informe y FODA copiados al portapapeles!');
     }
   };
 
   // Real action: Download TXT
   const handleDownloadTxt = () => {
     const textReport = `===========================================
-LEARNING PROFILE — TUS RESULTADOS
+APRÉNDETE — INFORME Y ANÁLISIS FODA
 ===========================================
 Perfil: ${personalProfile.title}
 Fecha: ${new Date().toLocaleDateString('es-ES')}
 
 ${personalProfile.paragraph}
 
-TUS HABILIDADES Y PUNTUACIONES:
+PUNTUACIONES (Medias de 1.00 a 5.00):
 ${results.map((r) => `- ${r.friendlyName}: ${r.mean.toFixed(2)}/5.00 (${r.intensityLabel})`).join('\n')}
 
-ESTRATEGIAS CLAVE:
-${sectionARecs.map((r) => `* ${r.title}: ${r.explanation} (Acción: ${r.actionToday})`).join('\n')}
+MATRIZ FODA:
+1. Fortalezas (F):
+${foda.fortalezas.items.map((it) => `   * ${it.title}: ${it.description}`).join('\n')}
+2. Oportunidades (O):
+${foda.oportunidades.items.map((it) => `   * ${it.title}: ${it.description}`).join('\n')}
+3. Puntos a cuidar (D):
+${foda.debilidades.items.map((it) => `   * ${it.title}: ${it.description}`).join('\n')}
+4. Amenazas y fricciones (A):
+${foda.amenazas.items.map((it) => `   * ${it.title}: ${it.description}`).join('\n')}
 
-RETO DE 7 DÍAS:
-${dayPlan.map((d) => `Día ${d.day}: ${d.title} (${d.durationMinutes})\n- Instrucciones: ${d.instructions}\n- Pregunta: ${d.reflectionQuestion}\n`).join('\n')}
+RECOMENDACIONES ESTRATÉGICAS:
+${foda.recommendations.map((r) => `* [${r.strategyCode}] ${r.title}\n  - ${r.rationale}\n  - Acción: ${r.actionToday}\n  - ${r.kpiDeliverable}`).join('\n\n')}
+
+RETO DE 7 DÍAS CON ENTREGABLES (KPI):
+${dayPlan.map((d) => `Día ${d.day}: ${d.title} (${d.durationMinutes})\n- Instrucciones: ${d.instructions}\n- ${d.kpiDeliverable}\n- Pregunta: ${d.reflectionQuestion}\n`).join('\n')}
 
 Aviso: Este resultado es una guía para explorar tus preferencias de aprendizaje, no una etiqueta definitiva.
 ===========================================`;
@@ -133,12 +155,12 @@ Aviso: Este resultado es una guía para explorar tus preferencias de aprendizaje
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `learning-profile-${new Date().toISOString().slice(0, 10)}.txt`;
+    link.download = `aprende-te-informe-foda-${new Date().toISOString().slice(0, 10)}.txt`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    onShowToast('Archivo guardado en tu dispositivo.');
+    onShowToast('Informe guardado en tu dispositivo.');
   };
 
   const handlePrint = () => {
@@ -150,7 +172,7 @@ Aviso: Este resultado es una guía para explorar tus preferencias de aprendizaje
       {/* Background Neon Lights and Glows */}
       <div className="absolute top-10 right-1/4 w-[420px] h-[320px] bg-gradient-to-br from-[#FF2D95]/15 to-[#8B5CF6]/10 rounded-full blur-[110px] pointer-events-none" />
 
-      {/* 1. Header & Title: Así es como te resulta más fácil aprender */}
+      {/* 1. Header & Title: Sin comillas como solicitado */}
       <div className="mb-8 relative z-10">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#121018] border border-[#FF2D95]/40 text-[#FF69C8] text-xs font-bold uppercase tracking-wide shadow-[0_0_15px_rgba(255,45,149,0.3)]">
@@ -163,7 +185,7 @@ Aviso: Este resultado es una guía para explorar tus preferencias de aprendizaje
             <button
               onClick={handleCopyReport}
               className="px-3 py-1.5 rounded-xl bg-[#121018] border border-[#2D2838] hover:border-[#FF2D95]/50 text-[#B8ADBF] hover:text-[#FFF8FC] text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
-              title="Copiar resumen al portapapeles"
+              title="Copiar informe completo y FODA al portapapeles"
             >
               <Copy className="w-3.5 h-3.5 text-[#FF2D95]" />
               <span className="hidden sm:inline">Copiar</span>
@@ -187,11 +209,12 @@ Aviso: Este resultado es una guía para explorar tus preferencias de aprendizaje
           </div>
         </div>
 
+        {/* Headline exact without quotes */}
         <h1 className="text-3xl sm:text-5xl font-extrabold text-[#FFF8FC] mb-3 font-['Space_Grotesk'] tracking-tight">
-          «Así es como te resulta más fácil aprender»
+          Así es como te resulta más fácil aprender
         </h1>
         <p className="text-sm sm:text-base text-[#B8ADBF] leading-relaxed max-w-3xl">
-          Tus respuestas nos dan algunas pistas sobre las formas de aprender que podrían funcionarte mejor. Descubre cómo aprovecharlas y qué otras habilidades puedes desarrollar.
+          Tus respuestas nos dan pistas sobre las formas de aprender que mejor te funcionan. A continuación encontrarás tu perfil, la gráfica radial y un análisis FODA con recomendaciones estratégicas y entregables clave.
         </p>
       </div>
 
@@ -276,120 +299,254 @@ Aviso: Este resultado es una guía para explorar tus preferencias de aprendizaje
         />
       </section>
 
-      {/* 4. SECCIÓN A — Aprovecha lo que ya te funciona */}
+      {/* 4. SECCIÓN UNIFICADA: ANÁLISIS FODA Y RECOMENDACIONES ESTRATÉGICAS */}
       <section className="mb-12 relative z-10">
-        <div className="flex items-center gap-2.5 mb-2">
-          <div className="w-10 h-10 rounded-2xl bg-[#FF2D95]/15 border border-[#FF2D95]/40 text-[#FF69C8] flex items-center justify-center font-bold shadow-[0_0_15px_rgba(255,45,149,0.3)]">
-            <CheckCircle2 className="w-5 h-5 text-[#FF2D95]" />
+        {/* Section Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 p-6 rounded-3xl bg-[#121018] border border-[#2D2838] shadow-xl">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#FF2D95] via-[#8B5CF6] to-[#36CFFF] text-white flex items-center justify-center font-extrabold shadow-[0_0_20px_rgba(255,45,149,0.4)] shrink-0">
+              <Zap className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-xl sm:text-2xl font-bold text-[#FFF8FC] font-['Space_Grotesk']">
+                  Análisis FODA y Recomendaciones Estratégicas
+                </h3>
+              </div>
+              <p className="text-xs sm:text-sm text-[#B8ADBF]">
+                Diagnóstico de fortalezas, oportunidades, puntos a cuidar y fricciones de tu perfil de aprendizaje, junto a sus 4 estrategias de acción.
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-xl sm:text-2xl font-bold text-[#FFF8FC] font-['Space_Grotesk']">
-              SECCIÓN A — Aprovecha lo que ya te funciona
-            </h3>
-            <p className="text-xs text-[#B8ADBF]">
-              Estrategias construidas sobre tus dos puntuaciones más altas para estudiar con mayor comodidad y eficacia.
-            </p>
+          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+            <span className="text-xs font-bold px-3 py-1 rounded-full bg-[#FF2D95]/15 text-[#FF69C8] border border-[#FF2D95]/40 shadow-[0_0_10px_rgba(255,45,149,0.2)]">
+              Matriz FODA Integral
+            </span>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5">
-          {sectionARecs.map((rec, i) => (
+        {/* 4 Quadrants Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          {/* F: Fortalezas */}
+          <div className="p-6 rounded-3xl bg-[#121018] border border-[#FF2D95]/40 hover:border-[#FF2D95] shadow-[0_0_20px_rgba(255,45,149,0.12)] transition-all flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-8 h-8 rounded-xl bg-[#FF2D95] text-white font-extrabold flex items-center justify-center text-sm shadow-[0_0_12px_#FF2D95]">
+                    F
+                  </span>
+                  <h4 className="text-lg font-bold text-[#FFF8FC] font-['Space_Grotesk']">
+                    {foda.fortalezas.title}
+                  </h4>
+                </div>
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#FF2D95]/15 text-[#FF69C8] border border-[#FF2D95]/30">
+                  {foda.fortalezas.badge}
+                </span>
+              </div>
+              <p className="text-xs text-[#B8ADBF] mb-4">
+                {foda.fortalezas.subtitle}
+              </p>
+              <div className="space-y-3">
+                {foda.fortalezas.items.map((item, idx) => (
+                  <div key={idx} className="p-3.5 rounded-2xl bg-[#1A111E] border border-[#2F1D2C] text-xs">
+                    <div className="flex items-center justify-between mb-1">
+                      <strong className="text-[#FFF8FC] font-semibold">{item.title}</strong>
+                      {item.tag && (
+                        <span className="text-[10px] text-[#FF69C8] font-bold">
+                          {item.tag}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[#B8ADBF] leading-relaxed">{item.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* O: Oportunidades */}
+          <div className="p-6 rounded-3xl bg-[#121018] border border-[#36CFFF]/40 hover:border-[#36CFFF] shadow-[0_0_20px_rgba(54,207,255,0.12)] transition-all flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-8 h-8 rounded-xl bg-[#36CFFF] text-[#08070B] font-extrabold flex items-center justify-center text-sm shadow-[0_0_12px_#36CFFF]">
+                    O
+                  </span>
+                  <h4 className="text-lg font-bold text-[#FFF8FC] font-['Space_Grotesk']">
+                    {foda.oportunidades.title}
+                  </h4>
+                </div>
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#36CFFF]/15 text-[#36CFFF] border border-[#36CFFF]/30">
+                  {foda.oportunidades.badge}
+                </span>
+              </div>
+              <p className="text-xs text-[#B8ADBF] mb-4">
+                {foda.oportunidades.subtitle}
+              </p>
+              <div className="space-y-3">
+                {foda.oportunidades.items.map((item, idx) => (
+                  <div key={idx} className="p-3.5 rounded-2xl bg-[#0F1B24] border border-[#19323F] text-xs">
+                    <div className="flex items-center justify-between mb-1">
+                      <strong className="text-[#FFF8FC] font-semibold">{item.title}</strong>
+                      {item.tag && (
+                        <span className="text-[10px] text-[#36CFFF] font-bold">
+                          {item.tag}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[#B8ADBF] leading-relaxed">{item.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* D: Debilidades / Puntos a cuidar */}
+          <div className="p-6 rounded-3xl bg-[#121018] border border-[#FFE45E]/40 hover:border-[#FFE45E] shadow-[0_0_20px_rgba(255,228,94,0.12)] transition-all flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-8 h-8 rounded-xl bg-[#FFE45E] text-[#08070B] font-extrabold flex items-center justify-center text-sm shadow-[0_0_12px_#FFE45E]">
+                    D
+                  </span>
+                  <h4 className="text-lg font-bold text-[#FFF8FC] font-['Space_Grotesk']">
+                    {foda.debilidades.title}
+                  </h4>
+                </div>
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#FFE45E]/15 text-[#FFE45E] border border-[#FFE45E]/30">
+                  {foda.debilidades.badge}
+                </span>
+              </div>
+              <p className="text-xs text-[#B8ADBF] mb-4">
+                {foda.debilidades.subtitle}
+              </p>
+              <div className="space-y-3">
+                {foda.debilidades.items.map((item, idx) => (
+                  <div key={idx} className="p-3.5 rounded-2xl bg-[#1F1D14] border border-[#3A351D] text-xs">
+                    <div className="flex items-center justify-between mb-1">
+                      <strong className="text-[#FFF8FC] font-semibold">{item.title}</strong>
+                      {item.tag && (
+                        <span className="text-[10px] text-[#FFE45E] font-bold">
+                          {item.tag}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[#B8ADBF] leading-relaxed">{item.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* A: Amenazas y Fricciones */}
+          <div className="p-6 rounded-3xl bg-[#121018] border border-[#8B5CF6]/40 hover:border-[#8B5CF6] shadow-[0_0_20px_rgba(139,92,246,0.12)] transition-all flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-8 h-8 rounded-xl bg-[#8B5CF6] text-white font-extrabold flex items-center justify-center text-sm shadow-[0_0_12px_#8B5CF6]">
+                    A
+                  </span>
+                  <h4 className="text-lg font-bold text-[#FFF8FC] font-['Space_Grotesk']">
+                    {foda.amenazas.title}
+                  </h4>
+                </div>
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#8B5CF6]/15 text-[#A78BFA] border border-[#8B5CF6]/30">
+                  {foda.amenazas.badge}
+                </span>
+              </div>
+              <p className="text-xs text-[#B8ADBF] mb-4">
+                {foda.amenazas.subtitle}
+              </p>
+              <div className="space-y-3">
+                {foda.amenazas.items.map((item, idx) => (
+                  <div key={idx} className="p-3.5 rounded-2xl bg-[#171424] border border-[#2B2342] text-xs">
+                    <div className="flex items-center justify-between mb-1">
+                      <strong className="text-[#FFF8FC] font-semibold">{item.title}</strong>
+                      {item.tag && (
+                        <span className="text-[10px] text-[#A78BFA] font-bold">
+                          {item.tag}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[#B8ADBF] leading-relaxed">{item.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* FODA-Derived Strategic Recommendations Header */}
+        <div className="mb-5">
+          <div className="flex items-center gap-2 mb-1">
+            <TrendingUp className="w-5 h-5 text-[#FF2D95]" />
+            <h4 className="text-lg sm:text-xl font-bold text-[#FFF8FC] font-['Space_Grotesk']">
+              Recomendaciones Estratégicas sobre tu FODA
+            </h4>
+          </div>
+          <p className="text-xs text-[#B8ADBF]">
+            Acciones cruzadas para multiplicar tus fortalezas, aprovechar oportunidades, neutralizar fricciones y blindar tu proceso de aprendizaje.
+          </p>
+        </div>
+
+        {/* 4 Recommendations Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {foda.recommendations.map((rec) => (
             <div
               key={rec.id}
-              className="p-5 sm:p-6 rounded-3xl bg-[#121018] border border-[#2D2838] hover:border-[#FF2D95]/50 shadow-xl transition-all flex flex-col justify-between group"
+              className="p-6 rounded-3xl bg-[#121018] border border-[#2D2838] hover:border-[#FF2D95]/60 shadow-xl transition-all flex flex-col justify-between group"
             >
               <div>
-                <span className="text-[11px] font-bold text-[#FF69C8] uppercase tracking-wider block mb-1.5">
-                  Recomendación 0{i + 1}
-                </span>
-                <h4 className="text-base font-bold text-[#FFF8FC] mb-2 font-['Space_Grotesk'] group-hover:text-[#FF69C8] transition-colors">
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <span
+                    className="text-[11px] font-bold px-2.5 py-0.5 rounded-full border tracking-wide uppercase"
+                    style={{
+                      color: rec.accentColor,
+                      borderColor: `${rec.accentColor}50`,
+                      backgroundColor: `${rec.accentColor}15`
+                    }}
+                  >
+                    {rec.typeLabel}
+                  </span>
+                </div>
+
+                <h5 className="text-base font-bold text-[#FFF8FC] mb-2 font-['Space_Grotesk'] group-hover:text-[#FF69C8] transition-colors">
                   {rec.title}
-                </h4>
-                <p className="text-xs sm:text-sm text-[#B8ADBF] leading-relaxed mb-3">
-                  {rec.explanation}
+                </h5>
+
+                <p className="text-xs sm:text-sm text-[#B8ADBF] leading-relaxed mb-4">
+                  {rec.rationale}
                 </p>
-                <div className="p-3 rounded-2xl bg-[#181522] border border-[#282334] text-xs text-[#B8ADBF] mb-4">
-                  <strong className="text-[#FFF8FC] block mb-0.5">Ejemplo concreto:</strong>
-                  {rec.example}
-                </div>
-              </div>
 
-              <div className="p-3.5 rounded-2xl bg-[#1F0F1A] border border-[#FF2D95]/40 text-xs">
-                <strong className="text-[#FF69C8] block mb-0.5 font-bold">
-                  Acción para hoy:
-                </strong>
-                <p className="text-[#FFF8FC]">{rec.actionToday}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 5. SECCIÓN B — Explora otras formas de aprender */}
-      <section className="mb-12 relative z-10">
-        <div className="flex items-center gap-2.5 mb-2">
-          <div className="w-10 h-10 rounded-2xl bg-[#8B5CF6]/15 border border-[#8B5CF6]/40 text-[#A78BFA] flex items-center justify-center font-bold shadow-[0_0_15px_rgba(139,92,246,0.3)]">
-            <Lightbulb className="w-5 h-5 text-[#8B5CF6]" />
-          </div>
-          <div>
-            <h3 className="text-xl sm:text-2xl font-bold text-[#FFF8FC] font-['Space_Grotesk']">
-              SECCIÓN B — Explora otras formas de aprender
-            </h3>
-            <p className="text-xs text-[#B8ADBF]">
-              No son debilidades: son recursos adicionales para ampliar tu repertorio de estrategias cuando lo necesites.
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
-          {sectionBRecs.map((rec) => (
-            <div
-              key={rec.id}
-              className="p-6 rounded-3xl bg-[#121018] border border-[#2D2838] hover:border-[#8B5CF6]/50 shadow-xl transition-all"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-[#A78BFA] uppercase tracking-wider">
-                  Habilidad para explorar
-                </span>
-                <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#8B5CF6]/15 text-[#A78BFA] border border-[#8B5CF6]/30">
-                  Oportunidad
-                </span>
-              </div>
-
-              <h4 className="text-lg font-bold text-[#FFF8FC] mb-2 font-['Space_Grotesk']">
-                {rec.skillName}
-              </h4>
-
-              <p className="text-xs sm:text-sm text-[#B8ADBF] leading-relaxed mb-4">
-                {rec.whatItOffers}
-              </p>
-
-              <div className="space-y-2.5 text-xs">
-                <div className="p-3.5 rounded-2xl bg-[#181522] border border-[#282334]">
-                  <strong className="text-[#36CFFF] block mb-0.5">En qué situación te ayuda:</strong>
-                  <p className="text-[#B8ADBF]">{rec.everydaySituation}</p>
+                <div className="p-3.5 rounded-2xl bg-[#181522] border border-[#282334] text-xs text-[#B8ADBF] mb-3">
+                  <strong className="text-[#FFF8FC] block mb-0.5">Ejemplo de aplicación:</strong>
+                  {rec.concreteExample}
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-[#181522] border border-[#282334]">
-                  <strong className="text-[#FFE45E] block mb-0.5 font-bold">
-                    Pequeño ejercicio para probar:
-                  </strong>
-                  <p className="text-[#B8ADBF]">{rec.smallExercise}</p>
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-[#1F0F1A] border border-[#FF2D95]/40 text-xs">
+                <div className="p-3.5 rounded-2xl bg-[#1F0F1A] border border-[#FF2D95]/40 text-xs mb-3">
                   <strong className="text-[#FF69C8] block mb-0.5 font-bold">
-                    Cómo combinarla con lo que ya te funciona:
+                    Acción para hoy:
                   </strong>
-                  <p className="text-[#FFF8FC]">{rec.pairingSuggestion}</p>
+                  <p className="text-[#FFF8FC]">{rec.actionToday}</p>
                 </div>
+              </div>
+
+              {/* KPI / Deliverable badge */}
+              <div className="p-3.5 rounded-2xl bg-[#151122] border border-[#36CFFF]/40 text-xs">
+                <div className="flex items-center gap-1.5 text-[#36CFFF] font-bold mb-1">
+                  <Target className="w-3.5 h-3.5" />
+                  <span>Resultado esperado / KPI:</span>
+                </div>
+                <p className="text-[#FFF8FC] leading-relaxed font-medium">
+                  {rec.kpiDeliverable}
+                </p>
               </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* 6. Plan de Acción: Tu reto de 7 días para aprender mejor */}
+      {/* 5. PLAN DE ACCIÓN: TU RETO DE 7 DÍAS CON ENTREGABLES (KPI) */}
       <section className="mb-12 relative z-10">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-7 rounded-3xl bg-[#121018] border border-[#2D2838] mb-6 shadow-xl">
           <div>
@@ -402,7 +559,7 @@ Aviso: Este resultado es una guía para explorar tus preferencias de aprendizaje
               </h3>
             </div>
             <p className="text-xs sm:text-sm text-[#B8ADBF]">
-              Pequeños experimentos para descubrir qué te funciona.
+              Cada día incluye un resultado esperado explícito que funciona como entregable y KPI medible.
             </p>
           </div>
 
@@ -436,8 +593,8 @@ Aviso: Este resultado es una guía para explorar tus preferencias de aprendizaje
           />
         </div>
 
-        {/* 7 Daily Activities */}
-        <div className="space-y-3 mb-6">
+        {/* 7 Daily Activities with explicit KPI Deliverables */}
+        <div className="space-y-4 mb-6">
           {dayPlan.map((item) => (
             <div
               key={item.day}
@@ -447,7 +604,7 @@ Aviso: Este resultado es una guía para explorar tus preferencias de aprendizaje
                   : 'bg-[#121018] border-[#2D2838] hover:border-[#FF2D95]/40'
               }`}
             >
-              <div className="flex items-start justify-between gap-3 mb-2">
+              <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="flex items-start gap-3">
                   <button
                     type="button"
@@ -498,10 +655,22 @@ Aviso: Este resultado es una guía para explorar tus preferencias de aprendizaje
                 )}
               </div>
 
-              <div className="pl-10 space-y-2 text-xs text-[#B8ADBF]">
+              <div className="pl-10 space-y-3 text-xs text-[#B8ADBF]">
                 <p className="leading-relaxed">
                   <strong className="text-[#FFF8FC]">Instrucciones:</strong> {item.instructions}
                 </p>
+
+                {/* KPI Deliverable highlighted box */}
+                <div className="p-3.5 rounded-2xl bg-[#1C1427] border border-[#FF2D95]/40 text-xs">
+                  <div className="flex items-center gap-1.5 text-[#FF69C8] font-bold mb-1">
+                    <Target className="w-3.5 h-3.5 text-[#FF2D95]" />
+                    <span>Entregable (KPI) — Resultado esperado:</span>
+                  </div>
+                  <p className="text-[#FFF8FC] font-medium leading-relaxed">
+                    {item.kpiDeliverable}
+                  </p>
+                </div>
+
                 <div className="p-3 rounded-2xl bg-[#181522] border border-[#282334] text-[#FFF8FC]">
                   <span className="text-[#FF69C8] font-bold block mb-0.5">Pregunta de reflexión:</span>
                   <p className="italic text-[#B8ADBF]">«{item.reflectionQuestion}»</p>
@@ -520,9 +689,9 @@ Aviso: Este resultado es una guía para explorar tus preferencias de aprendizaje
             </h4>
           </div>
           <ul className="space-y-2 text-xs text-[#B8ADBF] pl-5 list-disc leading-relaxed">
-            <li><strong>¿Qué actividad me ayudó más?</strong> Observa cuál de los 7 días te dio mejores resultados prácticos.</li>
-            <li><strong>¿Qué pude recordar sin consultar mis apuntes?</strong> Comprueba el impacto de la evocación activa.</li>
-            <li><strong>¿Qué estrategia quiero seguir utilizando?</strong> Incorpora de forma permanente una o dos técnicas a tu rutina.</li>
+            <li><strong>¿Qué actividad me ayudó más?</strong> Observa cuál de los 7 entregables/KPIs te dio mejores resultados prácticos.</li>
+            <li><strong>¿Qué pude recordar sin consultar mis apuntes?</strong> Comprueba el impacto de la evocación activa del Día 2.</li>
+            <li><strong>¿Qué estrategia quiero seguir utilizando?</strong> Incorpora de forma permanente una o dos técnicas a tu rutina cotidiana.</li>
           </ul>
         </div>
       </section>

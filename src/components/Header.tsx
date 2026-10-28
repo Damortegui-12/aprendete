@@ -27,7 +27,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="text-base font-extrabold tracking-tight text-[#FFF8FC] font-['Space_Grotesk']">
-                Learning Profile
+                Apréndete
               </span>
               <span className="hidden sm:inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FF2D95]/15 text-[#FF69C8] border border-[#FF2D95]/30 tracking-wider">
                 24 PREGUNTAS

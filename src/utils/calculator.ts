@@ -7,7 +7,10 @@ import {
   DayPlanItem,
   UserPersonalProfile,
   SectionARecommendation,
-  SectionBRecommendation
+  SectionBRecommendation,
+  FodaAnalysis,
+  FodaQuadrant,
+  FodaStrategicRecommendation
 } from '../types';
 
 export const DIMENSION_KEYS: DimensionKey[] = [
@@ -159,7 +162,6 @@ export function generatePersonalProfile(
   const k1 = top1.key;
   const k2 = top2.key;
 
-  // Title dictionary based on combinations
   const pairTitles: Record<string, string> = {
     'visual_espacial-practico_experiencial': 'Aprendes mejor cuando lo ves y lo haces',
     'practico_experiencial-visual_espacial': 'Aprendes mejor cuando lo haces y lo ves en acción',
@@ -198,7 +200,6 @@ export function generatePersonalProfile(
     }
   }
 
-  // Generates 2-3 tailored conversational sentences
   const paragraph = `Parece que te resulta especialmente útil combinar ${top1.friendlyName.toLowerCase()} con ${top2.friendlyName.toLowerCase()}. Cuando puedes aprovechar estas dos vías juntas, la información cobra sentido con mayor rapidez y la recuerdas con menos esfuerzo. Puedes usar esta combinación para estudiar con mayor comodidad, aprender una habilidad nueva o resolver problemas en tu día a día.`;
 
   return {
@@ -210,94 +211,223 @@ export function generatePersonalProfile(
   };
 }
 
-// SECTION A: Aprovecha lo que ya te funciona (3 to 4 personalized recommendations)
+// FODA ANALYSIS & STRATEGIC RECOMMENDATIONS GENERATOR
+export function generateFodaAnalysis(
+  top1: DimensionResult,
+  top2: DimensionResult,
+  lowest1: DimensionResult,
+  lowest2: DimensionResult
+): FodaAnalysis {
+  // Fortalezas (F) - Interno positivo
+  const fortalezas: FodaQuadrant = {
+    code: 'F',
+    title: 'Fortalezas',
+    badge: 'Factores Internos Clave',
+    subtitle: 'Tus ventajas cognitivas más naturales y de mayor rendimiento',
+    color: '#FF2D95',
+    badgeBg: 'rgba(255, 45, 149, 0.15)',
+    badgeBorder: 'rgba(255, 45, 149, 0.4)',
+    badgeText: '#FF69C8',
+    glowColor: 'rgba(255, 45, 149, 0.35)',
+    items: [
+      {
+        title: `Dominio en ${top1.friendlyName} (${top1.mean.toFixed(2)}/5)`,
+        description: `Tu mente procesa con rapidez y fluidez cuando utilizas ${top1.meta.summary.toLowerCase()}`,
+        tag: 'Habilidad primaria'
+      },
+      {
+        title: `Apoyo sólido en ${top2.friendlyName} (${top2.mean.toFixed(2)}/5)`,
+        description: `Complementas eficazmente recurriendo a ${top2.meta.summary.toLowerCase()}`,
+        tag: 'Habilidad secundaria'
+      },
+      {
+        title: 'Sinergia de aprendizaje personalizada',
+        description: `Al integrar ${top1.shortName.toLowerCase()} y ${top2.shortName.toLowerCase()}, retienes conceptos con mayor solidez y menor esfuerzo cognitivo.`,
+        tag: 'Ventaja competitiva'
+      }
+    ]
+  };
+
+  // Oportunidades (O) - Externo positivo
+  const oportunidades: FodaQuadrant = {
+    code: 'O',
+    title: 'Oportunidades',
+    badge: 'Factores de Expansión',
+    subtitle: 'Vías, formatos y herramientas que pueden maximizar tu avance',
+    color: '#36CFFF',
+    badgeBg: 'rgba(54, 207, 255, 0.15)',
+    badgeBorder: 'rgba(54, 207, 255, 0.4)',
+    badgeText: '#36CFFF',
+    glowColor: 'rgba(54, 207, 255, 0.35)',
+    items: [
+      {
+        title: 'Entornos adaptados a tus fortalezas',
+        description: `Elegir materiales que enfaticen ${top1.shortName.toLowerCase()} (como vídeos interactivos, prácticas guiadas o casos de estudio) acelerará tu curva de dominio.`,
+        tag: 'Formato ideal'
+      },
+      {
+        title: `Desarrollo gradual de ${lowest1.friendlyName}`,
+        description: `Incorporar micro-prácticas de ${lowest1.shortName.toLowerCase()} como complemento secundario ampliará tu repertorio sin causarte estrés.`,
+        tag: 'Crecimiento'
+      },
+      {
+        title: 'Herramientas y métodos modernos de estudio',
+        description: 'La tecnología actual permite transformar cualquier temario teórico al formato que mejor asimilas en minutos.',
+        tag: 'Metodología'
+      }
+    ]
+  };
+
+  // Debilidades (D) - Interno a cuidar (expresado de forma positiva y no deficitaria)
+  const debilidades: FodaQuadrant = {
+    code: 'D',
+    title: 'Puntos a cuidar',
+    badge: 'Puntos Ciegos Internos',
+    subtitle: 'Fricciones internas cuando dependes de una sola vía de estudio',
+    color: '#FFE45E',
+    badgeBg: 'rgba(255, 228, 94, 0.15)',
+    badgeBorder: 'rgba(255, 228, 94, 0.4)',
+    badgeText: '#FFE45E',
+    glowColor: 'rgba(255, 228, 94, 0.35)',
+    items: [
+      {
+        title: 'Riesgo de sobreutilización de tus formas favoritas',
+        description: `Forzar ${top1.shortName.toLowerCase()} en temas que exigen otras vías puede ralentizarte o generar agotamiento innecesario.`,
+        tag: 'Sesgo de hábito'
+      },
+      {
+        title: `Menor soltura inicial en ${lowest1.friendlyName} (${lowest1.mean.toFixed(2)}/5)`,
+        description: `Tareas que dependen exclusivamente de ${lowest1.shortName.toLowerCase()} pueden provocarte cierta resistencia o desgana inicial.`,
+        tag: 'Zona de mejora'
+      },
+      {
+        title: `Baja recurrencia a ${lowest2.friendlyName} (${lowest2.mean.toFixed(2)}/5)`,
+        description: `Tiendes a pasar por alto ${lowest2.meta.summary.toLowerCase()}, desaprovechando sus ventajas en revisiones finales.`,
+        tag: 'Oportunidad latente'
+      }
+    ]
+  };
+
+  // Amenazas (A) - Externo desfavorable y fricciones
+  const amenazas: FodaQuadrant = {
+    code: 'A',
+    title: 'Amenazas y Fricciones',
+    badge: 'Fricciones del Entorno',
+    subtitle: 'Situaciones externas de estudio o trabajo que chocan con tu estilo',
+    color: '#8B5CF6',
+    badgeBg: 'rgba(139, 92, 246, 0.15)',
+    badgeBorder: 'rgba(139, 92, 246, 0.4)',
+    badgeText: '#A78BFA',
+    glowColor: 'rgba(139, 92, 246, 0.35)',
+    items: [
+      {
+        title: 'Materiales rígidos o mal estructurados',
+        description: `Exposiciones monótonas o textos densos sin posibilidad de ${top1.shortName.toLowerCase()} pueden reducir drásticamente tu atención.`,
+        tag: 'Rigidez externa'
+      },
+      {
+        title: 'Evaluaciones que premian la memorización pasiva',
+        description: 'Exámenes o tareas que no permiten demostrar comprensión aplicada o estructuración lógica de ideas.',
+        tag: 'Evaluación desalineada'
+      },
+      {
+        title: 'Falta de tiempo para procesar a tu ritmo',
+        description: 'Plazos inmediatos que te impiden construir tus esquemas, pruebas prácticas o reflexiones habituales.',
+        tag: 'Presión temporal'
+      }
+    ]
+  };
+
+  // Strategic Recommendations derived directly from FODA (FO, FA, DO, DA)
+  const recommendations: FodaStrategicRecommendation[] = [
+    {
+      id: 'strat-fo',
+      strategyCode: 'FO',
+      typeLabel: 'Estrategia FO • Potenciar tus Fortalezas con Oportunidades',
+      title: `Multiplica tu rendimiento: combina ${top1.shortName} con ${top2.shortName}`,
+      rationale: `Aprovecha que tus dos mayores fortalezas (${top1.friendlyName} y ${top2.friendlyName}) se potencian entre sí. Al diseñar tus sesiones alrededor de ellas, asimilarás proyectos complejos en la mitad de tiempo.`,
+      concreteExample: `Inicia cualquier sesión dedicando 10 minutos a ${top1.meta.techniques[0].toLowerCase()} y consolida con 10 minutos de ${top2.meta.techniques[0].toLowerCase()}.`,
+      actionToday: `Toma el tema principal que tengas entre manos hoy y construye un resumen usando ${top1.meta.quickAction.toLowerCase()}.`,
+      kpiDeliverable: `Entregable (KPI): 1 artefacto de estudio (esquema, síntesis o prototipo) que combine ambas vías terminado en menos de 25 minutos.`,
+      accentColor: '#FF2D95'
+    },
+    {
+      id: 'strat-fa',
+      strategyCode: 'FA',
+      typeLabel: 'Estrategia FA • Blindarte ante Amenazas usando tus Fortalezas',
+      title: `Traduce materiales rígidos a tu propio lenguaje cognitivo`,
+      rationale: `Cuando te enfrentes a clases magistrales pasivas, temarios aburridos o formatos poco estimulantes, no intentes adaptarte pasivamente: traduce activamente la información a ${top1.friendlyName}.`,
+      concreteExample: `Si recibes un documento denso de texto puro, tradúcelo en tiempo real a una estructura de puntos clave o notas visuales según escuchas o lees.`,
+      actionToday: `Frente a la tarea más monótona de hoy, detente tras el primer párrafo y reformúlala inmediatamente en tu formato favorito.`,
+      kpiDeliverable: `Entregable (KPI): 1 hoja de notas traducida activamente a tu estilo antes de continuar con la lectura pasiva.`,
+      accentColor: '#8B5CF6'
+    },
+    {
+      id: 'strat-do',
+      strategyCode: 'DO',
+      typeLabel: 'Estrategia DO • Superar Puntos a Cuidar aprovechando Oportunidades',
+      title: `Micro-dosis de baja fricción en ${lowest1.friendlyName}`,
+      rationale: `Para no tropezar cuando una materia exija ${lowest1.friendlyName}, no intentes convertirte en un experto de golpe. Introduce micro-experimentos de 5 minutos apoyándote siempre en ${top1.friendlyName}.`,
+      concreteExample: `Dedica 5 minutos a ${lowest1.meta.quickAction.toLowerCase()} justo después de haber repasado con tu método favorito.`,
+      actionToday: `Haz una prueba rápida de 5 minutos con ${lowest1.meta.techniques[0].toLowerCase()} sin juzgar la perfección del resultado.`,
+      kpiDeliverable: `Entregable (KPI): 1 micro-ejercicio completado y evaluado con una nota de 1 línea sobre lo aprendido.`,
+      accentColor: '#36CFFF'
+    },
+    {
+      id: 'strat-da',
+      strategyCode: 'DA',
+      typeLabel: 'Estrategia DA • Blindaje Preventivo ante Bloqueos',
+      title: 'Protocolo anti-bloqueo para tareas desalineadas con tu estilo',
+      rationale: `Si una tarea requiere exclusivamente ${lowest1.friendlyName} o ${lowest2.friendlyName} y además tienes poco tiempo, el riesgo de bloqueo o procrastinación aumenta. Establece un límite de tiempo estricto y divide la tarea en bloques de 15 minutos.`,
+      concreteExample: `Usa la regla de los 15 minutos: trabaja en esa tarea difícil solo 15 minutos de reloj. Si te bloqueas, consulta a un compañero o cambia temporalmente de enfoque.`,
+      actionToday: `Elige la tarea pendiente que más pereza te dé y fija un temporizador de 15 minutos para avanzar solo el primer paso.`,
+      kpiDeliverable: `Entregable (KPI): Bloque de 15 minutos ejecutado sin distracciones con el primer hito de la tarea documentado.`,
+      accentColor: '#FFE45E'
+    }
+  ];
+
+  return {
+    fortalezas,
+    oportunidades,
+    debilidades,
+    amenazas,
+    recommendations
+  };
+}
+
+// Kept for backward compatibility
 export function generateSectionARecommendations(
   top1: DimensionResult,
   top2: DimensionResult
 ): SectionARecommendation[] {
-  const recommendations: SectionARecommendation[] = [];
-
-  // Recommendation 1 based on top 1
-  if (top1.key === 'visual_espacial') {
-    recommendations.push({
+  return [
+    {
       id: 'a1',
-      skillKey: 'visual_espacial',
-      title: 'Primero visualízalo, luego profundiza',
-      explanation: 'Antes de leer un texto denso o memorizar fórmulas, busca una imagen, un vídeo corto o crea un boceto rápido de una sola página.',
-      example: 'Al preparar una reunión o un examen, dibuja las ideas principales conectadas en un esquema circular.',
-      actionToday: 'Toma el tema que tengas entre manos hoy y crea un mapa mental con tres colores distintos.'
-    });
-  } else if (top1.key === 'verbal_explicativo') {
-    recommendations.push({
-      id: 'a1',
-      skillKey: 'verbal_explicativo',
-      title: 'Explícalo con tus propias palabras',
-      explanation: 'No te limites a releer pasivamente. Lo que realmente asienta tus conocimientos es traducir lo que aprendes a frases sencillas y naturales.',
-      example: 'Al terminar un capítulo, cierra el texto e intenta explicarle a alguien en dos minutos qué decía.',
-      actionToday: 'Graba una nota de voz de 90 segundos explicando la idea central de lo que has aprendido hoy.'
-    });
-  } else if (top1.key === 'practico_experiencial') {
-    recommendations.push({
-      id: 'a1',
-      skillKey: 'practico_experiencial',
-      title: 'Aprende probando desde el primer minuto',
-      explanation: 'La teoría cobra sentido cuando ves qué pasa al aplicarla. Comienza con pequeños ejercicios o retos reales antes de leer explicaciones largas.',
-      example: 'Si estás aprendiendo a usar un software, ábrelo y crea un mini-proyecto de prueba antes de leer todo el manual.',
-      actionToday: 'Elige un ejercicio práctico del tema que estudias y resuélvelo directamente sin mirar la solución.'
-    });
-  } else if (top1.key === 'analitico_estructurado') {
-    recommendations.push({
-      id: 'a1',
-      skillKey: 'analitico_estructurado',
-      title: 'Descompón lo complejo en pasos claros',
-      explanation: 'Te ayuda mucho ver el hilo conductor y el orden lógico. Cuando un tema te abrume, divídelo en partes pequeñas y abórdalas una a una.',
-      example: 'Crear una lista secuencial de 5 pasos para dominar un proceso antes de intentar abarcarlo entero.',
-      actionToday: 'Crea una lista de 3 pasos numerados para resolver la tarea más difícil que tengas pendiente hoy.'
-    });
-  } else if (top1.key === 'social_colaborativo') {
-    recommendations.push({
-      id: 'a1',
-      skillKey: 'social_colaborativo',
-      title: 'Convierte el estudio en un intercambio activo',
-      explanation: 'Dialogar y contrastar dudas te aporta energía cognitiva. Encuentra momentos para comentar lo que aprendes con compañeros.',
-      example: 'Una sesión de 30 minutos con un colega para hacerse tres preguntas difíciles cada uno sobre el temario.',
-      actionToday: 'Escribe a un compañero de clase o trabajo para compartir una duda o punto interesante sobre lo que estudias.'
-    });
-  } else {
-    recommendations.push({
-      id: 'a1',
-      skillKey: 'autorregulacion_metacognicion',
-      title: 'Define tu meta antes de abrir los apuntes',
-      explanation: 'Tu capacidad de organizar tus sesiones te da una gran ventaja. Saber exactamente qué quieres conseguir en cada bloque te ahorra tiempo y dispersión.',
-      example: 'Anotar en una tarjeta: "En estos 30 minutos voy a dominar los conceptos A y B", y evaluar el resultado al terminar.',
-      actionToday: 'Fija una meta única de 20 minutos de concentración para hoy y anota si la alcanzaste.'
-    });
-  }
-
-  // Recommendation 2: Combining Top 1 and Top 2
-  recommendations.push({
-    id: 'a2',
-    skillKey: top2.key,
-    title: `Combina ${top1.shortName.toLowerCase()} con ${top2.shortName.toLowerCase()}`,
-    explanation: `Tu gran fortaleza está en la suma de ambas: puedes utilizar ${top1.meta.techniques[0].toLowerCase()} para iniciar y complementar con ${top2.meta.techniques[0].toLowerCase()} para consolidar.`,
-    example: `Utilizar ${top1.shortName.toLowerCase()} para captar la idea global y luego aplicar ${top2.shortName.toLowerCase()} para afianzar los detalles.`,
-    actionToday: `En tu próxima sesión, prueba a unir ambas estrategias: dedica 10 minutos a una y los siguientes 10 minutos a la otra.`
-  });
-
-  // Recommendation 3: Concrete daily habit based on Top 2
-  recommendations.push({
-    id: 'a3',
-    skillKey: top2.key,
-    title: `Aprovecha tu segunda vía: ${top2.friendlyName}`,
-    explanation: top2.meta.summary,
-    example: top2.meta.studyWorkExample,
-    actionToday: top2.meta.quickAction
-  });
-
-  return recommendations;
+      skillKey: top1.key,
+      title: `Aprovecha tu fortaleza principal: ${top1.friendlyName}`,
+      explanation: top1.meta.summary,
+      example: top1.meta.studyWorkExample,
+      actionToday: top1.meta.quickAction
+    },
+    {
+      id: 'a2',
+      skillKey: top2.key,
+      title: `Combina ${top1.shortName.toLowerCase()} con ${top2.shortName.toLowerCase()}`,
+      explanation: `Tu gran fortaleza está en la suma de ambas: puedes utilizar ${top1.meta.techniques[0].toLowerCase()} para iniciar y complementar con ${top2.meta.techniques[0].toLowerCase()} para consolidar.`,
+      example: `Utilizar ${top1.shortName.toLowerCase()} para captar la idea global y luego aplicar ${top2.shortName.toLowerCase()} para afianzar los detalles.`,
+      actionToday: `En tu próxima sesión, prueba a unir ambas estrategias: dedica 10 minutos a una y los siguientes 10 minutos a la otra.`
+    },
+    {
+      id: 'a3',
+      skillKey: top2.key,
+      title: `Aprovecha tu segunda vía: ${top2.friendlyName}`,
+      explanation: top2.meta.summary,
+      example: top2.meta.studyWorkExample,
+      actionToday: top2.meta.quickAction
+    }
+  ];
 }
 
-// SECTION B: Explora otras formas de aprender (2 complementary skills, non-judgmental)
 export function generateSectionBRecommendations(
   lowest1: DimensionResult,
   lowest2: DimensionResult,
@@ -326,6 +456,7 @@ export function generateSectionBRecommendations(
 }
 
 // 7-DAY LEARNING PLAN: "Tu reto de 7 días para aprender mejor"
+// Each day now includes a clear, tangible "kpiDeliverable" (Resultado esperado como KPI)
 export function generate7DayPlan(
   dominant: DimensionResult,
   secondary: DimensionResult | undefined,
@@ -343,6 +474,7 @@ export function generate7DayPlan(
       objective: `Observar cómo te sientes al estudiar aplicando deliberadamente tu forma de aprender favorita (${dominant.friendlyName}).`,
       instructions: `Elige un tema que necesites comprender hoy. Aplica esta estrategia concreta: ${dominant.meta.techniques[0]}. Trabaja durante 15 minutos en este formato y fíjate en si la comprensión fue más fluida.`,
       reflectionQuestion: '¿Sentí que el tiempo pasaba más rápido y que entendía con menos esfuerzo?',
+      kpiDeliverable: 'Entregable (KPI): Mapa conceptual o esquema de 1 página con los 3 conceptos nucleares y sus relaciones completado.',
       completed: false
     },
     {
@@ -354,6 +486,7 @@ export function generate7DayPlan(
       objective: 'Comprobar qué recuerdas realmente sin consultar notas ni pistas.',
       instructions: 'Cierra todos tus libros y pantallas. Toma una hoja en blanco y anota o dibuja de memoria todo lo que recuerdes del Día 1. Después abre las notas y comprueba qué se te escapó.',
       reflectionQuestion: '¿Qué conceptos pude recordar con solidez y cuáles necesité volver a mirar?',
+      kpiDeliverable: 'Entregable (KPI): Hoja de recuperación activa redactada 100% de memoria, con lista de aciertos y omisiones verificada.',
       completed: false
     },
     {
@@ -365,6 +498,7 @@ export function generate7DayPlan(
       objective: `Unir tus dos habilidades más destacadas en una misma sesión.`,
       instructions: `Comienza utilizando ${dominant.meta.techniques[0].toLowerCase()} durante 10 minutos y después pasa a ${sec.meta.techniques[0].toLowerCase()} durante otros 10 minutos. Compara cómo se complementan.`,
       reflectionQuestion: '¿Qué me aportó la segunda técnica que no tenía con la primera?',
+      kpiDeliverable: 'Entregable (KPI): Ficha combinada de estudio con síntesis explicativa y diagrama visual o caso práctico de soporte.',
       completed: false
     },
     {
@@ -376,6 +510,7 @@ export function generate7DayPlan(
       objective: `Probar con curiosidad una forma de aprender que utilizas con menos frecuencia.`,
       instructions: `Sin juzgarte ni buscar la perfección, dedica 15 minutos a este pequeño ejercicio: ${lowest.meta.quickAction}`,
       reflectionQuestion: '¿Qué parte de este nuevo ejercicio me resultó interesante o útil?',
+      kpiDeliverable: 'Entregable (KPI): Ejercicio práctico de exploración finalizado con registro de 3 minutos sobre sensaciones y aprendizajes.',
       completed: false
     },
     {
@@ -387,6 +522,7 @@ export function generate7DayPlan(
       objective: 'Demostrarte que dominas una idea explicándola de forma simple.',
       instructions: 'Elige el concepto más complicado de esta semana y explícaselo en voz alta a otra persona o a ti mismo/a en menos de 3 minutos, usando solo comparaciones de la vida diaria y cero tecnicismos.',
       reflectionQuestion: '¿En qué momentos dudé y necesité aclarar mejor mis ideas?',
+      kpiDeliverable: 'Entregable (KPI): Audio de 90 segundos o nota explicativa grabada con palabras propias y sin consultar apuntes.',
       completed: false
     },
     {
@@ -398,6 +534,7 @@ export function generate7DayPlan(
       objective: 'Resolver un reto práctico, caso real o problema concreto.',
       instructions: 'Aplica lo aprendido a un ejercicio práctico, escribe un ejemplo del mundo real o crea una pequeña solución útil. No te quedes en la teoría: haz algo tangible con lo que sabes.',
       reflectionQuestion: '¿Qué descubrí al poner la idea en práctica que no había notado en la teoría?',
+      kpiDeliverable: 'Entregable (KPI): Caso práctico o problema resuelto paso a paso con documentación tangible de la solución.',
       completed: false
     },
     {
@@ -409,6 +546,7 @@ export function generate7DayPlan(
       objective: 'Elegir qué técnicas conservarás para tus próximos estudios o proyectos.',
       instructions: 'Revisa los experimentos de la semana y responde a las tres preguntas clave: ¿Qué actividad me ayudó más? ¿Qué pude recordar sin consultar apuntes? ¿Qué estrategia quiero seguir utilizando?',
       reflectionQuestion: '¿Cómo ha cambiado mi mirada sobre mi manera de aprender?',
+      kpiDeliverable: 'Entregable (KPI): «Manifiesto de Aprendizaje» de 1 página con tus 3 reglas de oro permanentes para futuros retos.',
       completed: false
     }
   ];

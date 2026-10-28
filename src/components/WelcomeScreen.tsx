@@ -40,7 +40,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       <div className="text-center mb-6 relative z-10">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#121018] border border-[#FF2D95]/40 text-[#FF69C8] text-xs font-bold tracking-widest uppercase shadow-[0_0_20px_rgba(255,45,149,0.25)]">
           <Zap className="w-3.5 h-3.5 text-[#FF2D95] fill-[#FF2D95]" />
-          Learning Profile
+          Apréndete
         </div>
       </div>
 

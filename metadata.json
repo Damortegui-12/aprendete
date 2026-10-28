@@ -1,6 +1,8 @@
 {
-  "name": "Learning Profile",
+  "name": "Apréndete",
   "description": "Cuestionario interactivo de 24 preguntas para identificar tus preferencias y estrategias de aprendizaje, con cálculo de seis medias, recomendaciones prácticas y plan de aprendizaje de 7 días.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

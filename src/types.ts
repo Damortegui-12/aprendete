@@ -62,6 +62,46 @@ export interface UserPersonalProfile {
   isTie: boolean;
 }
 
+export interface FodaItem {
+  title: string;
+  description: string;
+  tag?: string;
+}
+
+export interface FodaQuadrant {
+  code: 'F' | 'O' | 'D' | 'A';
+  title: string;
+  badge: string;
+  subtitle: string;
+  color: string;
+  badgeBg: string;
+  badgeBorder: string;
+  badgeText: string;
+  glowColor: string;
+  items: FodaItem[];
+}
+
+export interface FodaStrategicRecommendation {
+  id: string;
+  strategyCode: 'FO' | 'FA' | 'DO' | 'DA';
+  typeLabel: string; // e.g. "Estrategia FO: Potenciar", "Estrategia FA: Proteger"
+  title: string;
+  rationale: string;
+  concreteExample: string;
+  actionToday: string;
+  kpiDeliverable: string; // KPI / Entregable esperado de la recomendación
+  accentColor: string;
+}
+
+export interface FodaAnalysis {
+  fortalezas: FodaQuadrant;
+  oportunidades: FodaQuadrant;
+  debilidades: FodaQuadrant;
+  amenazas: FodaQuadrant;
+  recommendations: FodaStrategicRecommendation[];
+}
+
+// Kept for backward compatibility if needed by older imports
 export interface SectionARecommendation {
   id: string;
   title: string;
@@ -98,6 +138,7 @@ export interface DayPlanItem {
   objective: string;
   instructions: string;
   reflectionQuestion: string;
+  kpiDeliverable: string; // Entregable tangible que funciona como KPI
   completed: boolean;
 }
 
